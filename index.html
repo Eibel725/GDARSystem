@@ -2600,28 +2600,29 @@ function _autoUpdateRqEst(rqNum){
   if(!rqNum)return;
   const rq=DB.requerimientos.find(r=>r.num===rqNum);
   if(!rq||rq.est==='Anulado')return;
-  // Solo ítems con código y cantidad definida (únicos que podemos cruzar con almacén)
   const items=(rq.items||[]).filter(i=>i.cod&&i.desc&&+i.cant>0);
   if(items.length===0)return;
-  // Entradas de almacén vinculadas a este RQ
   const entradas=DB.almacen.filter(e=>e.tipo==='E'&&e.rqRef===rqNum);
-  if(entradas.length===0){
-    // Si no hay entradas y estaba en proceso, regresa a Pendiente
-    if(rq.est==='En Proceso'||rq.est==='Atendido Parcial'){
-      rq.est='Pendiente';supaUpsert('saveRequerimiento',rq);rReq&&rReq();
-    }
-    return;
-  }
-  let fulfilledCount=0;
-  for(const item of items){
-    const ingresado=entradas.filter(e=>e.codigo===item.cod).reduce((s,e)=>s+(+e.cant||0),0);
-    if(ingresado>= +item.cant)fulfilledCount++;
-  }
   let newEst;
-  if(fulfilledCount===items.length) newEst='Atendido';
-  else if(fulfilledCount>0)         newEst='Atendido Parcial';
-  else                               newEst='En Proceso';
-  if(rq.est!==newEst){rq.est=newEst;supaUpsert('saveRequerimiento',rq);rReq&&rReq();}
+  if(entradas.length===0){
+    newEst='En Proceso';
+  }else{
+    let fulfilledCount=0;
+    for(const item of items){
+      const ingresado=entradas.filter(e=>e.codigo===item.cod).reduce((s,e)=>s+(+e.cant||0),0);
+      if(ingresado>=+item.cant)fulfilledCount++;
+    }
+    if(fulfilledCount===items.length)     newEst='Atendido';
+    else if(fulfilledCount>0)             newEst='Atendido Parcial';
+    else                                  newEst='En Proceso';
+  }
+  if(rq.est!==newEst){
+    rq.est=newEst;
+    supa.from('requerimientos').update({est:newEst}).eq('num',rqNum).then(({error})=>{
+      if(error)console.warn('[RQ estado]',error.message);
+    });
+    rReq&&rReq();
+  }
 }
 
 function _almCancelEdit(modalId){
