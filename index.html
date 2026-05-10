@@ -2596,13 +2596,13 @@ function getStock(){
 }
 let _almFiltTipo='',_almEditId=null;
 
-function _autoUpdateRqEst(rqNum){
+async function _autoUpdateRqEst(rqNum){
   if(!rqNum)return;
   const rq=DB.requerimientos.find(r=>r.num===rqNum);
   if(!rq||rq.est==='Anulado')return;
   const items=(rq.items||[]).filter(i=>i.cod&&i.desc&&+i.cant>0);
   if(items.length===0)return;
-  const entradas=DB.almacen.filter(e=>e.tipo==='E'&&e.rqRef===rqNum);
+  const entradas=DB.almacen.filter(e=>e.tipo==='E'&&String(e.rqRef).trim()===String(rqNum).trim());
   let newEst;
   if(entradas.length===0){
     newEst='En Proceso';
@@ -2618,16 +2618,20 @@ function _autoUpdateRqEst(rqNum){
   }
   if(rq.est!==newEst){
     rq.est=newEst;
-    supa.from('requerimientos').update({est:newEst}).eq('num',rqNum).then(({error})=>{
-      if(error)console.warn('[RQ estado]',error.message);
-    });
+    const {error}=await supa.from('requerimientos').update({est:newEst}).eq('id',rq.id);
+    if(error){
+      console.warn('[RQ estado]',rqNum,error.message);
+      toast('Error RQ '+rqNum+': '+error.message,true);
+    }else{
+      toast('✓ '+rqNum+' actualizado → '+newEst);
+    }
     rReq&&rReq();
   }
 }
 
-function recalcularEstadosRQ(){
+async function recalcularEstadosRQ(){
   const rqNums=[...new Set(DB.almacen.filter(e=>e.rqRef).map(e=>e.rqRef))];
-  rqNums.forEach(num=>_autoUpdateRqEst(num));
+  for(const num of rqNums) await _autoUpdateRqEst(num);
 }
 
 function _almCancelEdit(modalId){
@@ -2729,12 +2733,18 @@ function _aeOnRqChange(){
   const matRow=document.getElementById('aeRqMatRow');
   const matSel=document.getElementById('aeRqMat');
   if(!sel||!sel.value||!matRow||!matSel){if(matRow)matRow.style.display='none';return;}
-  // Buscar por data-id (único por proyecto) en lugar de por num (puede repetirse entre proyectos)
   const opt=sel.options[sel.selectedIndex];
   const rqId=opt?+opt.dataset.id:null;
   const rq=rqId?DB.requerimientos.find(r=>r.id===rqId):DB.requerimientos.find(r=>r.num===sel.value);
-  const items=rq&&rq.items?rq.items.filter(i=>i.desc&&i.desc.trim()):[];
-  if(!rq||items.length===0){matRow.style.display='none';return;}
+  if(!rq){matRow.style.display='none';return;}
+  // Auto-rellenar proyecto desde el RQ seleccionado
+  const proyEl=document.getElementById('aeProyecto');
+  if(proyEl&&rq.proyecto){
+    const matchOpt=[...proyEl.options].find(o=>o.value===rq.proyecto);
+    if(matchOpt) proyEl.value=rq.proyecto;
+  }
+  const items=rq.items?rq.items.filter(i=>i.desc&&i.desc.trim()):[];
+  if(items.length===0){matRow.style.display='none';return;}
   matSel.innerHTML='<option value="">— Elige un material del RQ —</option>'
     +items.map((it,idx)=>`<option value="${idx}" data-cod="${it.cod||''}" data-nom="${it.desc}" data-und="${it.und||''}">${it.cod?'['+it.cod+'] ':''}${it.desc} · ${it.cant} ${it.und||''}</option>`).join('');
   matSel.value='';
