@@ -1782,8 +1782,8 @@ async function supaUpsert(dbKey,record){
   const table=SUPA_TABLES[dbKey];if(!table)return;
   try{
     const {error}=await supa.from(table).upsert(toSnake(record));
-    if(error)console.warn('[Supabase upsert]',table,error.message);
-  }catch(e){console.warn('[Supabase]',e);}
+    if(error){console.warn('[Supabase upsert]',table,error.message);toast('Error al guardar: '+error.message,true);}
+  }catch(e){console.warn('[Supabase]',e);toast('Error de conexión con Supabase',true);}
 }
 
 async function supaDelete(dbKey,id){
@@ -2785,7 +2785,7 @@ function gAlm(tipo){
     const aeProy=aeProyEl?aeProyEl.value:'';
     const aeCodProy=aeProyOpt&&aeProyOpt.dataset.cod?aeProyOpt.dataset.cod:'';
     const aeRqRef=document.getElementById('aeRqRef')?document.getElementById('aeRqRef').value:'';
-    const rec={fecha:document.getElementById('aeF').value||today(),proyecto:aeProy,codProy:aeCodProy,rqRef:aeRqRef,codigo:cod,nombre:document.getElementById('aeNom').value,unidad:document.getElementById('aeUnd').value,tipo:'E',cant:+document.getElementById('aeCant').value||0,stock:0,tipoCosto:document.getElementById('aeTc').value,para:document.getElementById('aePers').value,proveedor:document.getElementById('aeProv').value,obs:document.getElementById('aeObs').value};
+    const rec={fecha:document.getElementById('aeF').value||today(),proyecto:aeProy,codProy:aeCodProy,rqRef:aeRqRef,codigo:cod,nombre:document.getElementById('aeNom').value,unidad:document.getElementById('aeUnd').value,tipo:'E',cant:+document.getElementById('aeCant').value||0,tipoCosto:document.getElementById('aeTc').value,para:document.getElementById('aePers').value,proveedor:document.getElementById('aeProv').value,obs:document.getElementById('aeObs').value};
     if(_almEditId!==null){
       const idx=DB.almacen.findIndex(x=>x.id===_almEditId);
       if(idx!==-1){Object.assign(DB.almacen[idx],rec);syncSheet('saveAlmacen',DB.almacen[idx]);}
@@ -2807,7 +2807,7 @@ function gAlm(tipo){
     const asProyOpt=asProyEl?asProyEl.options[asProyEl.selectedIndex]:null;
     const asProy=asProyEl?asProyEl.value:'';
     const asCodProy=asProyOpt&&asProyOpt.dataset.cod?asProyOpt.dataset.cod:'';
-    const rec={fecha:document.getElementById('asF').value||today(),proyecto:asProy,codProy:asCodProy,codigo:sel,nombre:m.nombre,unidad:m.unidad,tipo:'S',cant,stock:0,tipoCosto:document.getElementById('asTc').value,para:document.getElementById('asPers').value+' – '+document.getElementById('asDest').value,obs:document.getElementById('asObs').value,numVale:document.getElementById('asVale').value.trim()};
+    const rec={fecha:document.getElementById('asF').value||today(),proyecto:asProy,codProy:asCodProy,codigo:sel,nombre:m.nombre,unidad:m.unidad,tipo:'S',cant,tipoCosto:document.getElementById('asTc').value,para:document.getElementById('asPers').value+' – '+document.getElementById('asDest').value,obs:document.getElementById('asObs').value,numVale:document.getElementById('asVale').value.trim()};
     if(_almEditId!==null){
       const idx=DB.almacen.findIndex(x=>x.id===_almEditId);
       if(idx!==-1){Object.assign(DB.almacen[idx],rec);syncSheet('saveAlmacen',DB.almacen[idx]);}
