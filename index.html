@@ -1901,7 +1901,7 @@ async function loadSheetsData(){
       DB.nx.req=Math.max(...DB.requerimientos.map(r=>+r.id||0))+1;
       loaded=true;
     }
-    if(loaded){renderPage(AP);toast('✓ Datos cargados');}
+    if(loaded){renderPage(AP);recalcularEstadosRQ();toast('✓ Datos cargados');}
   }catch(e){console.warn('Supabase load error:',e);}
 }
 // ══ SEED DEMO DATA TO SUPABASE (ejecutar una sola vez desde consola) ══
@@ -2623,6 +2623,11 @@ function _autoUpdateRqEst(rqNum){
     });
     rReq&&rReq();
   }
+}
+
+function recalcularEstadosRQ(){
+  const rqNums=[...new Set(DB.almacen.filter(e=>e.rqRef).map(e=>e.rqRef))];
+  rqNums.forEach(num=>_autoUpdateRqEst(num));
 }
 
 function _almCancelEdit(modalId){
