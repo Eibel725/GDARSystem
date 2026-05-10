@@ -2597,12 +2597,10 @@ function getStock(){
 }
 let _almFiltTipo='',_almEditId=null;
 
-async function _autoUpdateRqEst(rqNum){
-  if(!rqNum)return;
-  const rqNumT=String(rqNum).trim();
-  const rq=DB.requerimientos.find(r=>String(r.num).trim()===rqNumT);
+async function _autoUpdateRqEstForRq(rq){
   if(!rq||rq.est==='Anulado')return;
-  const items=(rq.items||[]).filter(i=>i.cod&&String(i.cod).trim()&&i.desc&&+i.cant>0);
+  const rqNumT=String(rq.num).trim();
+  const items=(rq.items||[]).filter(i=>i.cod&&String(i.cod).trim()&&+i.cant>0);
   if(items.length===0)return;
   const entradas=DB.almacen.filter(e=>{
     if(e.tipo!=='E')return false;
@@ -2617,17 +2615,20 @@ async function _autoUpdateRqEst(rqNum){
     for(const item of items){
       const cod=String(item.cod).trim();
       const ingresado=entradas.filter(e=>String(e.codigo).trim()===cod).reduce((s,e)=>s+(+e.cant||0),0);
-      if(ingresado>=+item.cant)fulfilledCount++;
+      const ok=ingresado>=+item.cant;
+      console.log(`[RQ ${rqNumT}|${rq.codProy}] item cod="${cod}" cant=${item.cant} ingresado=${ingresado} ok=${ok}`);
+      if(ok)fulfilledCount++;
     }
+    console.log(`[RQ ${rqNumT}|${rq.codProy}] fulfilledCount=${fulfilledCount} / items=${items.length} | entradas=${entradas.length}`);
     if(fulfilledCount===items.length)     newEst='Atendido';
     else if(fulfilledCount>0)             newEst='Atendido Parcial';
     else                                  newEst='En Proceso';
   }
   if(rq.est!==newEst){
     rq.est=newEst;
-    const {error}=await supa.from('requerimientos').update({est:newEst}).eq('num',rqNumT);
+    const {error}=await supa.from('requerimientos').update({est:newEst}).eq('id',rq.id);
     if(error){
-      toast('Error guardando RQ '+rqNumT+': '+error.message,true);
+      toast('Error '+rqNumT+': '+error.message,true);
     }else{
       toast('✓ '+rqNumT+' → '+newEst);
     }
@@ -2635,9 +2636,14 @@ async function _autoUpdateRqEst(rqNum){
   }
 }
 
+async function _autoUpdateRqEst(rqNum){
+  if(!rqNum)return;
+  const matches=DB.requerimientos.filter(r=>String(r.num).trim()===String(rqNum).trim());
+  for(const rq of matches) await _autoUpdateRqEstForRq(rq);
+}
+
 async function recalcularEstadosRQ(){
-  const rqNums=[...new Set(DB.almacen.filter(e=>e.rqRef).map(e=>e.rqRef))];
-  for(const num of rqNums) await _autoUpdateRqEst(num);
+  for(const rq of DB.requerimientos) await _autoUpdateRqEstForRq(rq);
 }
 
 function _almCancelEdit(modalId){
