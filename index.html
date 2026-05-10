@@ -2598,18 +2598,24 @@ let _almFiltTipo='',_almEditId=null;
 
 async function _autoUpdateRqEst(rqNum){
   if(!rqNum)return;
-  const rq=DB.requerimientos.find(r=>r.num===rqNum);
+  const rqNumT=String(rqNum).trim();
+  const rq=DB.requerimientos.find(r=>String(r.num).trim()===rqNumT);
   if(!rq||rq.est==='Anulado')return;
-  const items=(rq.items||[]).filter(i=>i.cod&&i.desc&&+i.cant>0);
+  const items=(rq.items||[]).filter(i=>i.cod&&String(i.cod).trim()&&i.desc&&+i.cant>0);
   if(items.length===0)return;
-  const entradas=DB.almacen.filter(e=>e.tipo==='E'&&String(e.rqRef).trim()===String(rqNum).trim());
-  let newEst;
+  const entradas=DB.almacen.filter(e=>{
+    if(e.tipo!=='E')return false;
+    if(String(e.rqRef).trim()!==rqNumT)return false;
+    if(rq.codProy&&e.codProy&&String(e.codProy).trim()!==String(rq.codProy).trim())return false;
+    return true;
+  });
+  let newEst, fulfilledCount=0;
   if(entradas.length===0){
     newEst='En Proceso';
   }else{
-    let fulfilledCount=0;
     for(const item of items){
-      const ingresado=entradas.filter(e=>e.codigo===item.cod).reduce((s,e)=>s+(+e.cant||0),0);
+      const cod=String(item.cod).trim();
+      const ingresado=entradas.filter(e=>String(e.codigo).trim()===cod).reduce((s,e)=>s+(+e.cant||0),0);
       if(ingresado>=+item.cant)fulfilledCount++;
     }
     if(fulfilledCount===items.length)     newEst='Atendido';
@@ -2620,12 +2626,11 @@ async function _autoUpdateRqEst(rqNum){
     rq.est=newEst;
     const {error}=await supa.from('requerimientos').update({est:newEst}).eq('id',rq.id);
     if(error){
-      console.warn('[RQ estado]',rqNum,error.message);
-      toast('Error RQ '+rqNum+': '+error.message,true);
+      toast('Error RQ '+rqNumT+': '+error.message,true);
     }else{
-      toast('✓ '+rqNum+' actualizado → '+newEst);
+      toast('✓ '+rqNumT+' → '+newEst);
+      rReq&&rReq();
     }
-    rReq&&rReq();
   }
 }
 
