@@ -562,6 +562,7 @@ select option{background:var(--panel2);}
       </div>
       <div class="card-head-right">
         <div class="search-wrap"><span>🔍</span><input class="search-input" placeholder="Buscar..." oninput="flt(this,'tbReq')"></div>
+        <button class="btn btn-out" style="border-color:#10b981;color:#10b981;font-size:.78rem" onclick="recalcularEstadosRQ().then(()=>toast('✓ Estados recalculados'))">⟳ Recalcular estados</button>
         <button class="btn btn-a" style="--ba:var(--alm)" onclick="openMReq()">＋ Nuevo Requerimiento</button>
       </div>
     </div>
@@ -2624,13 +2625,13 @@ async function _autoUpdateRqEst(rqNum){
   }
   if(rq.est!==newEst){
     rq.est=newEst;
-    const {error}=await supa.from('requerimientos').update({est:newEst}).eq('id',rq.id);
+    const {error}=await supa.from('requerimientos').update({est:newEst}).eq('num',rqNumT);
     if(error){
-      toast('Error RQ '+rqNumT+': '+error.message,true);
+      toast('Error guardando RQ '+rqNumT+': '+error.message,true);
     }else{
       toast('✓ '+rqNumT+' → '+newEst);
-      rReq&&rReq();
     }
+    rReq&&rReq();
   }
 }
 
