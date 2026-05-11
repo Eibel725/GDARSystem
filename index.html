@@ -2053,7 +2053,7 @@ function refreshSelects(){
    ['inTr',trabList],['ptR',trabList],['suS',trabList],['acRe',trabList],
    ['otEq',eqList],['otMec',mecList],['cbEq',eqList],['cbOp',trabList],
    ['coEq',eqListOpt],['rpEq',eqList],['rpOp',trabList],
-   ['aePers',trabList],['asPers',allPersEq],
+   ['aePers',trabList],['asPers',allPersEq],['smPers',allPersEq],
    ['asItem',stockOpts],
    ['rqSol',trabList],['rqArea',areaOpts],
    ['fpReq',reqOpts]
@@ -2775,8 +2775,6 @@ function openAlmSM(){
   smItemsArr=[];
   const ps=document.getElementById('smProyecto');
   if(ps){ps.innerHTML='<option value="">— Sin Proyecto —</option>'+DB.proyectos.map(p=>`<option value="${p.nombre}" data-cod="${p.codigo}">[${p.codigo}] ${p.nombre}</option>`).join('');ps.value='';}
-  const pe=document.getElementById('smPers');
-  if(pe)pe.innerHTML=DB.personal.filter(p=>p.est!=='Inactivo').map(p=>`<option value="${p.nombre}">${p.nombre}</option>`).join('');
   document.getElementById('smF').value=today();
   document.getElementById('smVale').value=_nextValeNum();
   document.getElementById('smDest').value='';
