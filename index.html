@@ -2989,12 +2989,14 @@ function printVale(){
   const rows=DB.almacen.filter(r=>r.tipo==='S'&&String(r.numVale||'').trim()===vale);
   if(!rows.length){toast('Sin registros para ese vale',true);return;}
   const h=rows[0];
+  const _logoUrl=window.location.href.replace(/[^\/\\]+$/,'')+'09.-ERP/Imagenes/ECOSERMO-LOGO.png';
   const w=window.open('','_blank','width=850,height=650');
   w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Vale ${vale}</title><style>
     *{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;padding:2rem;color:#111;font-size:13px}
-    .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.2rem;border-bottom:2px solid #1e293b;padding-bottom:.8rem}
-    .title h2{font-size:20px;color:#1e293b;margin-bottom:.15rem}.title p{color:#64748b;font-size:11px}
-    .vale-num{font-size:22px;font-weight:700;font-family:monospace;color:#ef4444;background:#fef2f2;border:2px solid #ef4444;padding:.3rem .9rem;border-radius:6px}
+    .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;border-bottom:2px solid #1e293b;padding-bottom:.8rem;gap:1rem}
+    .header-logo{flex:0 0 auto}.header-logo img{height:48px;object-fit:contain}
+    .header-title{flex:1;text-align:center}.header-title h2{font-size:20px;color:#1e293b;margin-bottom:.15rem}.header-title p{color:#64748b;font-size:11px}
+    .vale-num{flex:0 0 auto;font-size:22px;font-weight:700;font-family:monospace;color:#ef4444;background:#fef2f2;border:2px solid #ef4444;padding:.3rem .9rem;border-radius:6px}
     .info{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem 1rem;margin-bottom:1.2rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:.8rem}
     .info div strong{display:block;color:#64748b;font-size:10px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px}
     .info div span{font-size:12px;font-weight:600;color:#1e293b}
@@ -3007,7 +3009,8 @@ function printVale(){
     @media print{body{padding:1cm}button{display:none}}
   </style></head><body>
   <div class="header">
-    <div class="title"><h2>VALE DE SALIDA DE MATERIALES</h2><p>ECOSERMO – Sistema de Control de Almacén</p></div>
+    <div class="header-logo"><img src="${_logoUrl}" alt="Ecosermo"></div>
+    <div class="header-title"><h2>VALE DE SALIDA DE MATERIALES</h2><p>ECOSERMO – Sistema de Control de Almacén – GDAR</p></div>
     <div class="vale-num">${vale}</div>
   </div>
   <div class="info">
