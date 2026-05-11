@@ -1874,7 +1874,7 @@ async function loadSheetsData(){
       combustible:'comb',supervision:'super',incidentes:'inc',petar:'pet',
       ambiental:'amb',equipos:'eq',mantenimientos:'mant',planner:'plan',
       facturas:'fact',costos:'cost',frentesTrabajo:'ft',tipoMaterial:'tm',
-      tramos:'tr',catalogoItems:'cat',facturasPago:'fpago'};
+      tramos:'tr',catalogoItems:'cat',facturasPago:'fpago',proyectos:'proy'};
     let loaded=false;
     results.forEach(({dbKey,data,error})=>{
       if(!error&&data&&data.length>0){
@@ -3395,9 +3395,18 @@ function rProyectos(){
   }).join('');
   
 }
+function _nextProyCod(){
+  const yy=String(new Date().getFullYear()).slice(-2);
+  const re=/^([A-Z]+)-(\d+)-(\d+)$/;
+  const same=DB.proyectos.map(p=>p.codigo&&p.codigo.match(re)).filter(m=>m&&m[3]===yy);
+  if(same.length===0)return'EPY-001-'+yy;
+  const prefix=same[same.length-1][1];
+  const maxN=Math.max(...same.filter(m=>m[1]===prefix).map(m=>+m[2]));
+  return prefix+'-'+String(maxN+1).padStart(3,'0')+'-'+yy;
+}
 function openProyectoNew(){
   _editProyectoId=null;
-  document.getElementById('pCod').value='';
+  document.getElementById('pCod').value=_nextProyCod();
   document.getElementById('pNom').value='';
   document.getElementById('pDesc').value='';
   document.getElementById('pEst').value='Activo';
