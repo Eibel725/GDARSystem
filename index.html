@@ -3202,7 +3202,7 @@ function showReqSug(i,val){
   const mas=allMatches.length-30;
   const inp=document.getElementById('rqD'+i);if(!inp)return;
   const r=inp.getBoundingClientRect();
-  drop.style.cssText=`position:fixed;left:${r.left}px;top:${r.bottom+2}px;width:${Math.max(r.width,340)}px;z-index:9999;display:block;background:#1e2740;border:1px solid #2e3d60;border-radius:7px;box-shadow:0 8px 28px rgba(0,0,0,.7);max-height:260px;overflow-y:auto`;
+  drop.style.cssText=`position:fixed;left:${r.left}px;top:${r.bottom+2}px;width:${Math.max(r.width,520)}px;z-index:9999;display:block;background:#1e2740;border:1px solid #2e3d60;border-radius:7px;box-shadow:0 8px 28px rgba(0,0,0,.7);max-height:320px;overflow-y:auto`;
   const ea=s=>(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;');
   drop.innerHTML=matches.map(c=>`
     <div data-ri="${i}" data-tipo="${ea(c.tipo)}" data-cod="${ea(c.cod)}" data-desc="${ea(c.desc)}" data-und="${ea(c.und)}"
@@ -3216,7 +3216,7 @@ function showReqSug(i,val){
           <span style="font-size:.6rem;background:rgba(249,115,22,.18);color:var(--alm);border-radius:3px;padding:1px 5px;font-weight:700;white-space:nowrap">${c.tipo}</span>
           <span style="font-family:'Roboto Mono',monospace;font-size:.68rem;color:var(--alm)">${c.cod}</span>
         </div>
-        <span style="color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.desc}</span>
+        <span style="color:#e2e8f0;white-space:normal;word-break:break-word;line-height:1.35">${c.desc}</span>
       </div>
       <span style="color:#94a3b8;font-size:.68rem;background:#161e30;padding:1px 6px;border-radius:3px;white-space:nowrap;pointer-events:none">${c.und}</span>
     </div>`).join('')
