@@ -2731,7 +2731,7 @@ function _aeFilterRq(){
   const ps=document.getElementById('aeProyecto');
   const pNom=ps?ps.value:'';
   const pCod=ps&&ps.selectedIndex>0?ps.options[ps.selectedIndex].dataset.cod:'';
-  const rqs=DB.requerimientos.filter(r=>!pNom||(r.proyecto===pNom||r.codProy===pCod));
+  const rqs=DB.requerimientos.filter(r=>r.est!=='Atendido'&&(!pNom||(r.proyecto===pNom||r.codProy===pCod)));
   const sel=document.getElementById('aeRqRef');
   if(sel){
     sel.innerHTML='<option value="">— Sin Requerimiento —</option>'
