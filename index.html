@@ -2770,7 +2770,7 @@ function _aeOnRqChange(){
       const cod=String(it.cod||'').trim();
       const ingresado=cod&&+it.cant?DB.almacen.filter(e=>e.tipo==='E'&&String(e.rqRef).trim()===rqNumT&&String(e.codigo).trim()===cod&&(!rqCodProy||!e.codProy||String(e.codProy).trim()===rqCodProy)).reduce((s,e)=>s+(+e.cant||0),0):0;
       const falta=+it.cant-ingresado;
-      return`<option value="${idx}" data-cod="${it.cod||''}" data-nom="${it.desc}" data-und="${it.und||''}" data-falta="${falta}">${it.cod?'['+it.cod+'] ':''}${it.desc} · falta: ${falta} ${it.und||''}</option>`;
+      return`<option value="${idx}" data-cod="${it.cod||''}" data-nom="${it.desc}" data-und="${it.und||''}" data-falta="${falta}">${it.cod?'['+it.cod+'] ':''}${it.desc} · falta: ${falta}/${it.cant} ${it.und||''}</option>`;
     }).join('');
   matSel.value='';
   matRow.style.display='';
