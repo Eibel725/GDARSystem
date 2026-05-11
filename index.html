@@ -2755,10 +2755,23 @@ function _aeOnRqChange(){
     const matchOpt=[...proyEl.options].find(o=>o.value===rq.proyecto);
     if(matchOpt) proyEl.value=rq.proyecto;
   }
-  const items=rq.items?rq.items.filter(i=>i.desc&&i.desc.trim()):[];
+  const rqNumT=String(rq.num).trim();
+  const rqCodProy=String(rq.codProy||'').trim();
+  const allItems=rq.items?rq.items.filter(i=>i.desc&&i.desc.trim()):[];
+  const items=allItems.filter(i=>{
+    if(!i.cod||!+i.cant)return true;
+    const cod=String(i.cod).trim();
+    const ingresado=DB.almacen.filter(e=>e.tipo==='E'&&String(e.rqRef).trim()===rqNumT&&String(e.codigo).trim()===cod&&(!rqCodProy||!e.codProy||String(e.codProy).trim()===rqCodProy)).reduce((s,e)=>s+(+e.cant||0),0);
+    return ingresado<+i.cant;
+  });
   if(items.length===0){matRow.style.display='none';return;}
   matSel.innerHTML='<option value="">— Elige un material del RQ —</option>'
-    +items.map((it,idx)=>`<option value="${idx}" data-cod="${it.cod||''}" data-nom="${it.desc}" data-und="${it.und||''}">${it.cod?'['+it.cod+'] ':''}${it.desc} · ${it.cant} ${it.und||''}</option>`).join('');
+    +items.map((it,idx)=>{
+      const cod=String(it.cod||'').trim();
+      const ingresado=cod&&+it.cant?DB.almacen.filter(e=>e.tipo==='E'&&String(e.rqRef).trim()===rqNumT&&String(e.codigo).trim()===cod&&(!rqCodProy||!e.codProy||String(e.codProy).trim()===rqCodProy)).reduce((s,e)=>s+(+e.cant||0),0):0;
+      const falta=+it.cant-ingresado;
+      return`<option value="${idx}" data-cod="${it.cod||''}" data-nom="${it.desc}" data-und="${it.und||''}" data-falta="${falta}">${it.cod?'['+it.cod+'] ':''}${it.desc} · falta: ${falta} ${it.und||''}</option>`;
+    }).join('');
   matSel.value='';
   matRow.style.display='';
 }
@@ -2769,6 +2782,7 @@ function _aePickRqMat(){
   document.getElementById('aeCod').value=opt.dataset.cod||'';
   document.getElementById('aeNom').value=opt.dataset.nom||'';
   document.getElementById('aeUnd').value=opt.dataset.und||'';
+  if(opt.dataset.falta&&+opt.dataset.falta>0)document.getElementById('aeCant').value=opt.dataset.falta;
 }
 function rAlm(){
   const st=getStock(),items=Object.entries(st);
