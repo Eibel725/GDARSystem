@@ -493,6 +493,8 @@ select option{background:var(--panel2);}
         <div class="search-wrap"><span>🔍</span><input class="search-input" placeholder="Buscar..." oninput="flt(this,'tbAlm')"></div>
         <button class="btn btn-green" onclick="openAlmE()">⬆ Entrada</button>
         <button class="btn btn-del btn-sm" style="padding:.35rem .75rem;font-size:.77rem;" onclick="openAlmS()">⬇ Salida</button>
+        <button class="btn btn-del btn-sm" style="padding:.35rem .75rem;font-size:.77rem;background:rgba(239,68,68,.18);border-color:#ef4444" onclick="openAlmSM()">⬇ Salida Múltiple</button>
+        <button class="btn btn-out btn-sm" style="padding:.35rem .75rem;font-size:.77rem;border-color:#3b82f6;color:#3b82f6" onclick="openPrintVale()">🖨 Imprimir Vale</button>
       </div>
     </div>
     <div class="card-body"><div class="tbl-wrap"><table>
@@ -1140,6 +1142,40 @@ select option{background:var(--panel2);}
     <div class="fg"><label>N° de Vale</label><input id="asVale" placeholder="Ej: VAL-001"></div>
   </div></div>
   <div class="mf"><button class="btn btn-out" onclick="_almCancelEdit('mAlmS')">Cancelar</button><button class="btn btn-del" onclick="gAlm('S')">⬇ Registrar Salida</button></div>
+</div></div>
+
+<!-- Almacén Salida Múltiple -->
+<div class="mo" id="mAlmSM"><div class="modal" style="max-width:820px">
+  <div class="mh"><span class="mttl">⬇ Salida Múltiple de Materiales</span><button class="mx" onclick="closeM('mAlmSM')">✕</button></div>
+  <div class="mb">
+    <div class="fg-grid">
+      <div class="fg" style="grid-column:1/-1"><label>Nombre de Proyecto</label><select id="smProyecto"><option value="">— Sin Proyecto —</option></select></div>
+      <div class="fg"><label>Fecha</label><input id="smF" type="date"></div>
+      <div class="fg"><label>N° de Vale</label><input id="smVale" placeholder="VAL-001" style="font-family:'Roboto Mono',monospace;font-weight:700"></div>
+      <div class="fg" style="grid-column:1/-1"><label>Para Persona / Equipo</label><select id="smPers"></select></div>
+      <div class="fg"><label>Tipo de Costo</label><select id="smTc"><option>Costo Directo</option><option>Costo Indirecto</option><option>Reembolsable</option><option>Costo de Terceros</option></select></div>
+      <div class="fg"><label>Destino / Área que recibe</label><input id="smDest" placeholder="Área / equipo que recibe"></div>
+      <div class="fg" style="grid-column:1/-1"><label>Observaciones</label><input id="smObs" placeholder="Notas adicionales..."></div>
+    </div>
+    <div style="margin:.8rem 0 .4rem;display:flex;align-items:center;justify-content:space-between">
+      <label style="font-size:.62rem;letter-spacing:.1em;color:var(--muted2);text-transform:uppercase">Materiales a Despachar</label>
+      <button class="btn btn-out btn-sm" onclick="addSMItem()">＋ Agregar Material</button>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th style="width:32px">#</th><th>Material (con stock)</th><th style="width:90px;text-align:center">Stock</th><th style="width:90px;text-align:right">Cantidad</th><th style="width:36px"></th></tr></thead>
+      <tbody id="smItemsBody"></tbody>
+    </table></div>
+  </div>
+  <div class="mf"><button class="btn btn-out" onclick="closeM('mAlmSM')">Cancelar</button><button class="btn btn-del" onclick="gAlmSM()">⬇ Registrar Salidas</button></div>
+</div></div>
+
+<!-- Imprimir Vale -->
+<div class="mo" id="mPrintVale"><div class="modal" style="max-width:400px">
+  <div class="mh"><span class="mttl">🖨 Imprimir Vale de Salida</span><button class="mx" onclick="closeM('mPrintVale')">✕</button></div>
+  <div class="mb">
+    <div class="fg"><label>Seleccionar N° de Vale</label><select id="printValeSel" style="width:100%"></select></div>
+  </div>
+  <div class="mf"><button class="btn btn-out" onclick="closeM('mPrintVale')">Cancelar</button><button class="btn btn-a" style="--ba:#3b82f6" onclick="printVale()">🖨 Imprimir / PDF</button></div>
 </div></div>
 
 <!-- Combustible Modal -->
@@ -2726,6 +2762,124 @@ function openAlmS(){
   document.getElementById('asObs').value='';
   document.getElementById('asVale').value='';
   openM('mAlmS');
+}
+// ══ SALIDA MÚLTIPLE ══
+let smItemsArr=[];
+function _nextValeNum(){
+  const vales=DB.almacen.filter(r=>r.tipo==='S'&&r.numVale&&/^VAL-\d+$/i.test(String(r.numVale).trim()));
+  if(!vales.length)return'VAL-001';
+  const maxN=Math.max(...vales.map(r=>+String(r.numVale).trim().toUpperCase().replace('VAL-','')));
+  return'VAL-'+String(maxN+1).padStart(3,'0');
+}
+function openAlmSM(){
+  smItemsArr=[];
+  const ps=document.getElementById('smProyecto');
+  if(ps){ps.innerHTML='<option value="">— Sin Proyecto —</option>'+DB.proyectos.map(p=>`<option value="${p.nombre}" data-cod="${p.codigo}">[${p.codigo}] ${p.nombre}</option>`).join('');ps.value='';}
+  const pe=document.getElementById('smPers');
+  if(pe)pe.innerHTML=DB.personal.filter(p=>p.est!=='Inactivo').map(p=>`<option value="${p.nombre}">${p.nombre}</option>`).join('');
+  document.getElementById('smF').value=today();
+  document.getElementById('smVale').value=_nextValeNum();
+  document.getElementById('smDest').value='';
+  document.getElementById('smObs').value='';
+  addSMItem();
+  openM('mAlmSM');
+}
+function addSMItem(){smItemsArr.push({cod:'',cant:1});renderSMItems();}
+function removeSMItem(i){smItemsArr.splice(i,1);renderSMItems();}
+function renderSMItems(){
+  const st=getStock();
+  const optsBase=Object.entries(st).filter(([,v])=>v.stock>0).map(([cod,v])=>`<option value="${cod}">${cod} – ${v.nombre} (Stock: ${fmtN(v.stock)} ${v.unidad})</option>`).join('');
+  const b=document.getElementById('smItemsBody');if(!b)return;
+  b.innerHTML=smItemsArr.map((it,i)=>{
+    const sv=st[it.cod];
+    const opts='<option value="">— Seleccionar material —</option>'+optsBase.replace(`value="${it.cod}"`,`value="${it.cod}" selected`);
+    return`<tr>
+      <td style="padding:.28rem .4rem;color:var(--muted2);font-size:.7rem;text-align:center">${i+1}</td>
+      <td style="padding:.28rem .4rem"><select onchange="smItemsArr[${i}].cod=this.value;renderSMItems()" style="${ISS};width:100%;min-width:280px">${opts}</select></td>
+      <td style="padding:.28rem .4rem;text-align:center;font-size:.78rem;font-weight:600;color:${sv&&sv.stock<5?'#ef4444':sv?'#10b981':'#64748b'}">${sv?fmtN(sv.stock)+' '+sv.unidad:'—'}</td>
+      <td style="padding:.28rem .4rem"><input type="number" value="${it.cant}" min="0.01" step="0.01" oninput="smItemsArr[${i}].cant=+this.value" style="${ISS};width:80px;text-align:right"></td>
+      <td style="padding:.28rem .4rem"><button class="btn btn-del btn-sm" onclick="removeSMItem(${i})">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+function gAlmSM(){
+  const vale=document.getElementById('smVale').value.trim();
+  if(!vale){toast('Ingrese N° de Vale',true);return;}
+  const smProyEl=document.getElementById('smProyecto');
+  const smProyOpt=smProyEl&&smProyEl.selectedIndex>0?smProyEl.options[smProyEl.selectedIndex]:null;
+  const proy=smProyEl?smProyEl.value:'';
+  const codProy=smProyOpt&&smProyOpt.dataset.cod?smProyOpt.dataset.cod:'';
+  const fecha=document.getElementById('smF').value||today();
+  const para=document.getElementById('smPers').value+(document.getElementById('smDest').value?' – '+document.getElementById('smDest').value:'');
+  const tc=document.getElementById('smTc').value;
+  const obs=document.getElementById('smObs').value;
+  const st=getStock();
+  const validos=smItemsArr.filter(it=>it.cod&&+it.cant>0);
+  if(!validos.length){toast('Agregue al menos un material',true);return;}
+  for(const it of validos){
+    if(!st[it.cod]){toast('Sin stock: '+it.cod,true);return;}
+    if(it.cant>st[it.cod].stock){toast('Stock insuficiente: '+it.cod+' (disponible: '+fmtN(st[it.cod].stock)+')',true);return;}
+  }
+  for(const it of validos){
+    const m=st[it.cod];
+    const rec={id:nid('alm'),fecha,proyecto:proy,codProy,rqRef:'',codigo:it.cod,nombre:m.nombre,unidad:m.unidad,tipo:'S',cant:it.cant,stock:0,tipoCosto:tc,para,obs,numVale:vale};
+    DB.almacen.push(rec);
+    syncSheet('saveAlmacen',rec);
+  }
+  closeM('mAlmSM');rAlm();
+  toast('✓ '+validos.length+' salida(s) registradas – Vale: '+vale);
+}
+function openPrintVale(){
+  const vales=[...new Set(DB.almacen.filter(r=>r.tipo==='S'&&r.numVale&&String(r.numVale).trim()).map(r=>String(r.numVale).trim()))].sort();
+  if(!vales.length){toast('No hay vales registrados',true);return;}
+  const sel=document.getElementById('printValeSel');
+  sel.innerHTML=vales.map(v=>`<option value="${v}">${v}</option>`).join('');
+  openM('mPrintVale');
+}
+function printVale(){
+  const vale=document.getElementById('printValeSel').value;if(!vale)return;
+  const rows=DB.almacen.filter(r=>r.tipo==='S'&&String(r.numVale||'').trim()===vale);
+  if(!rows.length){toast('Sin registros para ese vale',true);return;}
+  const h=rows[0];
+  const w=window.open('','_blank','width=850,height=650');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Vale ${vale}</title><style>
+    *{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;padding:2rem;color:#111;font-size:13px}
+    .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.2rem;border-bottom:2px solid #1e293b;padding-bottom:.8rem}
+    .title h2{font-size:20px;color:#1e293b;margin-bottom:.15rem}.title p{color:#64748b;font-size:11px}
+    .vale-num{font-size:22px;font-weight:700;font-family:monospace;color:#ef4444;background:#fef2f2;border:2px solid #ef4444;padding:.3rem .9rem;border-radius:6px}
+    .info{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem 1rem;margin-bottom:1.2rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:.8rem}
+    .info div strong{display:block;color:#64748b;font-size:10px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px}
+    .info div span{font-size:12px;font-weight:600;color:#1e293b}
+    table{width:100%;border-collapse:collapse;margin-bottom:1.5rem}
+    th{background:#1e293b;color:#fff;padding:.45rem .6rem;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+    td{padding:.45rem .6rem;border-bottom:1px solid #e2e8f0;font-size:12px}tr:last-child td{border-bottom:none}
+    .tr{text-align:right}.mono{font-family:monospace}
+    .signs{display:grid;grid-template-columns:1fr 1fr;gap:3rem;margin-top:2.5rem}
+    .sign{text-align:center}.sign .line{border-top:1px solid #333;padding-top:.3rem;font-size:11px;color:#555}
+    @media print{body{padding:1cm}button{display:none}}
+  </style></head><body>
+  <div class="header">
+    <div class="title"><h2>VALE DE SALIDA DE MATERIALES</h2><p>ECOSERMO – Sistema de Control de Almacén</p></div>
+    <div class="vale-num">${vale}</div>
+  </div>
+  <div class="info">
+    <div><strong>Fecha</strong><span>${h.fecha||'—'}</span></div>
+    <div><strong>Proyecto</strong><span>${h.proyecto||'—'}</span></div>
+    <div><strong>Cód. Proyecto</strong><span>${h.codProy||'—'}</span></div>
+    <div style="grid-column:1/span 2"><strong>Entregado a</strong><span>${h.para||'—'}</span></div>
+    <div><strong>Tipo de Costo</strong><span>${h.tipoCosto||'—'}</span></div>
+    ${h.obs?`<div style="grid-column:1/-1"><strong>Observaciones</strong><span>${h.obs}</span></div>`:''}
+  </div>
+  <table>
+    <thead><tr><th style="width:36px">#</th><th style="width:100px">Código</th><th>Descripción del Material / EPP / Insumo</th><th style="width:70px">Unidad</th><th class="tr" style="width:80px">Cantidad</th></tr></thead>
+    <tbody>${rows.map((r,i)=>`<tr><td>${i+1}</td><td class="mono">${r.codigo}</td><td><strong>${r.nombre}</strong></td><td>${r.unidad}</td><td class="tr"><strong>${fmtN(r.cant)}</strong></td></tr>`).join('')}</tbody>
+  </table>
+  <div class="signs">
+    <div class="sign"><div class="line">Entregado por / Almacenero</div></div>
+    <div class="sign"><div class="line">Recibido por: ${rows[0].para?.split(' – ')[0]||'Receptor'}</div></div>
+  </div>
+  <script>window.onload=()=>{window.print();}<\/script></body></html>`);
+  w.document.close();closeM('mPrintVale');
 }
 function _aeFilterRq(){
   const ps=document.getElementById('aeProyecto');
