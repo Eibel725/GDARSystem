@@ -3028,8 +3028,12 @@ function printVale(){
     th{background:#1e293b;color:#fff;padding:.45rem .6rem;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em}
     td{padding:.45rem .6rem;border-bottom:1px solid #e2e8f0;font-size:12px}tr:last-child td{border-bottom:none}
     .tr{text-align:right}.mono{font-family:monospace}
-    .signs{display:grid;grid-template-columns:1fr 1fr;gap:3rem;margin-top:2.5rem}
-    .sign{text-align:center}.sign .line{border-top:1px solid #333;padding-top:.3rem;font-size:11px;color:#555}
+    .signs{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-top:3rem;border-top:1px solid #ddd;padding-top:1rem}
+    .sign{text-align:center}
+    .sign .sp{height:42px}
+    .sign .ln{border-top:1.5px solid #333;margin:0 8px 5px}
+    .sign .lb{font-size:9.5px;text-transform:uppercase;font-weight:700;color:#1e293b;letter-spacing:.06em}
+    .sign .sb{font-size:8.5px;color:#aaa;margin-top:2px}
     @media print{body{padding:1cm}button{display:none}}
   </style></head><body>
   <div class="header">
@@ -3050,8 +3054,9 @@ function printVale(){
     <tbody>${rows.map((r,i)=>`<tr><td>${i+1}</td><td class="mono">${r.codigo}</td><td><strong>${r.nombre}</strong></td><td>${r.unidad}</td><td class="tr"><strong>${fmtN(r.cant)}</strong></td></tr>`).join('')}</tbody>
   </table>
   <div class="signs">
-    <div class="sign"><div class="line">Entregado por / Almacenero</div></div>
-    <div class="sign"><div class="line">Recibido por: ${rows[0].para?.split(' – ')[0]||'Receptor'}</div></div>
+    <div class="sign"><div class="sp"></div><div class="ln"></div><div class="lb">Entregado por / Almacenero</div><div class="sb">Firma y sello</div></div>
+    <div class="sign"><div class="sp"></div><div class="ln"></div><div class="lb">Recibido por: ${(rows[0].para||'Receptor').split(' – ')[0]}</div><div class="sb">Firma y sello</div></div>
+    <div class="sign"><div class="sp"></div><div class="ln"></div><div class="lb">Área Autorizada</div><div class="sb">Firma y sello</div></div>
   </div>
   <script>window.onload=()=>{window.print();}<\/script></body></html>`);
   w.document.close();closeM('mPrintVale');
