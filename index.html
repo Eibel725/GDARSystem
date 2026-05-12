@@ -4818,7 +4818,7 @@ function onMatTipoChange(){
   const tipo=document.getElementById('matTipo').value;
   const prefix=REQ_PREFIXES[tipo]||tipo.slice(0,2)+'-';
   const count=DB.catalogoItems.filter(c=>c.tipo===tipo).length;
-  document.getElementById('matCod').value=prefix+String(count+1).padStart(3,'0');
+  document.getElementById('matCod').value=prefix+String(count+1).padStart(4,'0');
 }
 function rMateriales(){
   const items=DB.catalogoItems;
