@@ -3131,7 +3131,19 @@ function rAlm(){
   if(fpEl){const sv=_almFiltProy;fpEl.innerHTML='<option value="">— Todos los proyectos —</option>'+DB.proyectos.map(p=>`<option value="${p.codigo}">[${p.codigo}] ${p.nombre}</option>`).join('');fpEl.value=sv;}
   // Poblar filtro de tipo de material (prefijos de código)
   const fmEl=document.getElementById('almFiltMat');
-  if(fmEl){const sv=_almFiltMat;const pref=[...new Set(DB.almacen.map(r=>r.codigo?r.codigo.split('-')[0]:'').filter(Boolean))].sort();fmEl.innerHTML='<option value="">— Tipo de material —</option>'+pref.map(p=>{const tm=DB.tipoMaterial.find(t=>(t.abrev||'').toUpperCase()===p.toUpperCase());return`<option value="${p}">${p}${tm?' – '+tm.nombre:''}</option>`;}).join('');fmEl.value=sv;}
+  if(fmEl){
+    const sv=_almFiltMat;
+    const pref=[...new Set(DB.almacen.map(r=>r.codigo?r.codigo.split('-')[0]:'').filter(Boolean))].sort();
+    const _reqNom=Object.fromEntries(Object.entries(REQ_PREFIXES).map(([nom,pre])=>[pre.replace('-','').toUpperCase(),nom]));
+    const _getAbrev=t=>(t.abrev||t.abreviatura||'').trim().toUpperCase();
+    fmEl.innerHTML='<option value="">— Tipo de material —</option>'+pref.map(p=>{
+      const pU=p.trim().toUpperCase();
+      const tm=DB.tipoMaterial.find(t=>_getAbrev(t)===pU);
+      const nombre=tm?tm.nombre:(_reqNom[pU]||'');
+      return`<option value="${p}">${p}${nombre?' – '+nombre:''}</option>`;
+    }).join('');
+    fmEl.value=sv;
+  }
   // Restaurar filtros
   const ftEl=document.getElementById('almFiltTipo');if(ftEl&&ftEl.value!==_almFiltTipo)ftEl.value=_almFiltTipo;
   const fdEl=document.getElementById('almFiltFecha');if(fdEl&&fdEl.value!==_almFiltFecha)fdEl.value=_almFiltFecha;
