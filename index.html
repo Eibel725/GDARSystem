@@ -2952,11 +2952,15 @@ function addSMItem(){smItemsArr.push({cod:'',cant:1});renderSMItems();}
 function removeSMItem(i){smItemsArr.splice(i,1);renderSMItems();}
 function renderSMItems(){
   const st=getStock();
-  const optsBase=Object.entries(st).filter(([,v])=>v.stock>0).map(([cod,v])=>`<option value="${cod}">${cod} – ${v.nombre} (Stock: ${fmtN(v.stock)} ${v.unidad})</option>`).join('');
+  const allStock=Object.entries(st).filter(([,v])=>v.stock>0);
   const b=document.getElementById('smItemsBody');if(!b)return;
   b.innerHTML=smItemsArr.map((it,i)=>{
     const sv=st[it.cod];
-    const opts='<option value="">— Seleccionar material —</option>'+optsBase.replace(`value="${it.cod}"`,`value="${it.cod}" selected`);
+    const otherCods=new Set(smItemsArr.filter((_,j)=>j!==i&&_.cod).map(x=>x.cod));
+    const opts='<option value="">— Seleccionar material —</option>'+
+      allStock.filter(([cod])=>!otherCods.has(cod)||cod===it.cod)
+        .map(([cod,v])=>`<option value="${cod}"${cod===it.cod?' selected':''}>${cod} – ${v.nombre} (Stock: ${fmtN(v.stock)} ${v.unidad})</option>`)
+        .join('');
     return`<tr>
       <td style="padding:.28rem .4rem;color:var(--muted2);font-size:.7rem;text-align:center">${i+1}</td>
       <td style="padding:.28rem .4rem"><select onchange="smItemsArr[${i}].cod=this.value;renderSMItems()" style="${ISS};width:100%;min-width:280px">${opts}</select></td>
