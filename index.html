@@ -511,7 +511,9 @@ select option{background:var(--panel2);}
     <div class="card-body"><div class="tbl-wrap"><table>
       <thead><tr><th>Fecha</th><th>Proyecto</th><th>RQ</th><th>Código</th><th>Material / EPP / Insumo</th><th>Unidad</th><th>Mov.</th><th class="tr">Cant.</th><th class="tr">Stock</th><th>Tipo Costo</th><th>Para Persona / Equipo</th><th></th></tr></thead>
       <tbody id="tbAlm"></tbody>
-    </table></div></div>
+    </table></div>
+    <div id="almPagNav" style="display:flex;align-items:center;justify-content:space-between;padding:.45rem .75rem;border-top:1px solid var(--border);font-size:.78rem;color:var(--muted2)"></div>
+    </div>
   </div>
 </div>
 
@@ -2676,7 +2678,8 @@ function getStock(){
   });
   return s;
 }
-let _almFiltTipo='',_almFiltProy='',_almFiltMat='',_almFiltFecha='',_almEditId=null;
+let _almFiltTipo='',_almFiltProy='',_almFiltMat='',_almFiltFecha='',_almEditId=null,_almPage=0;
+const ALM_PAGE_SIZE=20;
 
 async function _autoUpdateRqEstForRq(rq){
   if(!rq||rq.est==='Anulado')return;
@@ -2743,6 +2746,7 @@ function _almChangeFilt(){
   _almFiltProy=(document.getElementById('almFiltProy')||{}).value||'';
   _almFiltMat=(document.getElementById('almFiltMat')||{}).value||'';
   _almFiltFecha=(document.getElementById('almFiltFecha')||{}).value||'';
+  _almPage=0;
   rAlm();
 }
 function editAlm(id){
@@ -3140,7 +3144,25 @@ function rAlm(){
   if(_almFiltProy)filasMostrar=filasMostrar.filter(r=>(r.codProy||'').trim()===_almFiltProy);
   if(_almFiltMat)filasMostrar=filasMostrar.filter(r=>r.codigo&&r.codigo.toUpperCase().startsWith(_almFiltMat.toUpperCase()+'-'));
   if(_almFiltFecha)filasMostrar=filasMostrar.filter(r=>r.fecha===_almFiltFecha);
-  document.getElementById('tbAlm').innerHTML=filasMostrar.map(r=>{
+  // Paginación
+  const _almTotal=filasMostrar.length;
+  const _almTotalPags=Math.max(1,Math.ceil(_almTotal/ALM_PAGE_SIZE));
+  if(_almPage>=_almTotalPags)_almPage=_almTotalPags-1;
+  const _almDesde=_almPage*ALM_PAGE_SIZE;
+  const _almHasta=Math.min(_almDesde+ALM_PAGE_SIZE,_almTotal);
+  const pagNav=document.getElementById('almPagNav');
+  if(pagNav){
+    if(_almTotal===0){pagNav.innerHTML='';}
+    else{const tp=_almTotalPags;pagNav.innerHTML=
+      `<span>Mostrando <strong>${_almDesde+1}–${_almHasta}</strong> de <strong>${_almTotal}</strong> registros</span>`+
+      `<div style="display:flex;align-items:center;gap:.4rem">`+
+        `<button class="btn btn-out btn-sm" style="padding:.25rem .65rem;font-size:.75rem" onclick="_almPage=Math.max(0,_almPage-1);rAlm()" ${_almPage===0?'disabled':''}>← Ant.</button>`+
+        `<span style="color:var(--text);font-weight:600;font-size:.8rem">Pág. ${_almPage+1} / ${tp}</span>`+
+        `<button class="btn btn-out btn-sm" style="padding:.25rem .65rem;font-size:.75rem" onclick="_almPage=Math.min(${tp-1},_almPage+1);rAlm()" ${_almPage===tp-1?'disabled':''}>Sig. →</button>`+
+      `</div>`;
+    }
+  }
+  document.getElementById('tbAlm').innerHTML=filasMostrar.slice(_almDesde,_almHasta).map(r=>{
     const saldo=saldoMap[r.id];
     return`<tr><td class="mono">${r.fecha}</td>
       <td style="font-size:.78rem;color:var(--muted2)">${r.proyecto||'—'}</td>
