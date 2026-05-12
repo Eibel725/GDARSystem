@@ -509,7 +509,7 @@ select option{background:var(--panel2);}
       </div>
     </div>
     <div class="card-body"><div class="tbl-wrap"><table>
-      <thead><tr><th>Fecha</th><th>Proyecto</th><th>RQ</th><th>Código</th><th>Material / EPP / Insumo</th><th>Unidad</th><th>Mov.</th><th class="tr">Cant.</th><th class="tr">Stock</th><th>Tipo Costo</th><th>Para Persona / Equipo</th><th></th></tr></thead>
+      <thead><tr><th>Fecha</th><th>Proyecto</th><th>RQ / VAL</th><th>Código</th><th>Material / EPP / Insumo</th><th>Unidad</th><th>Mov.</th><th class="tr">Cant.</th><th class="tr">Stock</th><th>Tipo Costo</th><th>Para Persona / Equipo</th><th></th></tr></thead>
       <tbody id="tbAlm"></tbody>
     </table></div>
     <div id="almPagNav" style="display:flex;align-items:center;justify-content:space-between;padding:.45rem .75rem;border-top:1px solid var(--border);font-size:.78rem;color:var(--muted2)"></div>
@@ -3171,7 +3171,7 @@ function rAlm(){
     const saldo=saldoMap[r.id];
     return`<tr><td class="mono">${r.fecha}</td>
       <td style="font-size:.78rem;color:var(--muted2)">${r.proyecto||'—'}</td>
-      <td class="mono" style="font-size:.78rem;color:#d97706">${r.rqRef||'—'}</td>
+      <td class="mono" style="font-size:.78rem;color:${r.tipo==='S'?'#3b82f6':'#d97706'}">${r.tipo==='S'?(r.numVale||'—'):(r.rqRef||'—')}</td>
       <td class="mono">${r.codigo}</td><td><strong>${r.nombre}</strong></td><td>${r.unidad}</td>
       <td>${r.tipo==='E'?'<span class="badge b-green">⬆ ENT</span>':'<span class="badge b-red">⬇ SAL</span>'}</td>
       <td class="tr mono">${fmtN(r.cant)}</td>
