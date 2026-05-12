@@ -483,19 +483,29 @@ select option{background:var(--panel2);}
   <div class="ph"><div class="ph-title" style="color:var(--alm)">Kardex / Almacén</div><div class="ph-sub">Control de inventario con tipo de costo</div></div>
   <div class="kpi-row" id="almKpis"></div>
   <div class="card">
-    <div class="card-head"><span class="card-title">Movimientos de Almacén</span>
-      <div class="card-head-right" style="flex-wrap:nowrap">
-        <select id="almFiltTipo" class="sel" style="min-width:130px" onchange="_almChangeFilt()">
+    <div class="card-head" style="flex-direction:column;align-items:stretch;gap:.5rem;padding-bottom:.6rem">
+      <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+        <span class="card-title">Movimientos de Almacén</span>
+        <div style="flex:1"></div>
+        <button class="btn btn-green" style="font-size:.77rem;padding:.35rem .85rem" onclick="openAlmEM()">⬆ Entrada Múltiple</button>
+        <button class="btn btn-del btn-sm" style="padding:.35rem .85rem;font-size:.77rem;background:rgba(239,68,68,.18);border-color:#ef4444" onclick="openAlmSM()">⬇ Salida Múltiple</button>
+        <button class="btn btn-out btn-sm" style="padding:.35rem .85rem;font-size:.77rem;border-color:#3b82f6;color:#3b82f6" onclick="openPrintVale()">🖨 Imprimir Vale</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+        <select id="almFiltTipo" class="sel" style="min-width:115px" onchange="_almChangeFilt()">
           <option value="">— Todos —</option>
           <option value="E">⬆ Entrada</option>
           <option value="S">⬇ Salida</option>
         </select>
+        <select id="almFiltProy" class="sel" style="min-width:170px" onchange="_almChangeFilt()">
+          <option value="">— Todos los proyectos —</option>
+        </select>
+        <select id="almFiltMat" class="sel" style="min-width:145px" onchange="_almChangeFilt()">
+          <option value="">— Tipo de material —</option>
+        </select>
+        <input id="almFiltFecha" type="date" class="sel" style="min-width:135px;cursor:pointer" onchange="_almChangeFilt()">
+        <button class="btn btn-out btn-sm" style="padding:.28rem .5rem;font-size:.72rem;border-color:#64748b;color:#64748b" onclick="document.getElementById('almFiltFecha').value='';_almChangeFilt()" title="Limpiar fecha">✕ Fecha</button>
         <div class="search-wrap"><span>🔍</span><input class="search-input" placeholder="Buscar..." oninput="flt(this,'tbAlm')"></div>
-        <button class="btn btn-green" onclick="openAlmE()">⬆ Entrada</button>
-        <button class="btn btn-green" style="background:rgba(16,185,129,.18);border:1px solid #10b981;color:#10b981;font-size:.77rem;padding:.35rem .75rem" onclick="openAlmEM()">⬆ Entrada Múltiple</button>
-        <button class="btn btn-del btn-sm" style="padding:.35rem .75rem;font-size:.77rem;" onclick="openAlmS()">⬇ Salida</button>
-        <button class="btn btn-del btn-sm" style="padding:.35rem .75rem;font-size:.77rem;background:rgba(239,68,68,.18);border-color:#ef4444" onclick="openAlmSM()">⬇ Salida Múltiple</button>
-        <button class="btn btn-out btn-sm" style="padding:.35rem .75rem;font-size:.77rem;border-color:#3b82f6;color:#3b82f6" onclick="openPrintVale()">🖨 Imprimir Vale</button>
       </div>
     </div>
     <div class="card-body"><div class="tbl-wrap"><table>
@@ -2666,7 +2676,7 @@ function getStock(){
   });
   return s;
 }
-let _almFiltTipo='',_almEditId=null;
+let _almFiltTipo='',_almFiltProy='',_almFiltMat='',_almFiltFecha='',_almEditId=null;
 
 async function _autoUpdateRqEstForRq(rq){
   if(!rq||rq.est==='Anulado')return;
@@ -2728,7 +2738,13 @@ function _almCancelEdit(modalId){
   }
   closeM(modalId);
 }
-function _almChangeFilt(){_almFiltTipo=document.getElementById('almFiltTipo').value;rAlm();}
+function _almChangeFilt(){
+  _almFiltTipo=(document.getElementById('almFiltTipo')||{}).value||'';
+  _almFiltProy=(document.getElementById('almFiltProy')||{}).value||'';
+  _almFiltMat=(document.getElementById('almFiltMat')||{}).value||'';
+  _almFiltFecha=(document.getElementById('almFiltFecha')||{}).value||'';
+  rAlm();
+}
 function editAlm(id){
   const r=DB.almacen.find(x=>x.id===id);if(!r)return;
   _almEditId=id;
@@ -3091,11 +3107,23 @@ function _aePickRqMat(){
 }
 function rAlm(){
   const st=getStock(),items=Object.entries(st);
-  document.getElementById('almKpis').innerHTML=[{l:'Tipos de Materiales',v:items.length,c:'#3b82f6'},{l:'Movimientos',v:DB.almacen.length,c:'#f97316'},{l:'Bajo Stock (<5)',v:items.filter(([,v])=>v.stock<5).length,c:'#ef4444'}].map(k=>`<div class="kpi" style="--kc:${k.c}"><div class="kpi-lbl">${k.l}</div><div class="kpi-val">${k.v}</div></div>`).join('');
+  document.getElementById('almKpis').innerHTML=[
+    {l:'Tipos de Materiales',v:items.length,c:'#3b82f6'},
+    {l:'Mov. Entradas',v:DB.almacen.filter(r=>r.tipo==='E').length,c:'#10b981'},
+    {l:'Mov. Salidas',v:DB.almacen.filter(r=>r.tipo==='S').length,c:'#ef4444'},
+    {l:'Stock Cero',v:items.filter(([,v])=>v.stock<=0).length,c:'#f97316'}
+  ].map(k=>`<div class="kpi" style="--kc:${k.c}"><div class="kpi-lbl">${k.l}</div><div class="kpi-val">${k.v}</div></div>`).join('');
+  // Poblar filtro de proyectos
+  const fpEl=document.getElementById('almFiltProy');
+  if(fpEl){const sv=_almFiltProy;fpEl.innerHTML='<option value="">— Todos los proyectos —</option>'+DB.proyectos.map(p=>`<option value="${p.codigo}">[${p.codigo}] ${p.nombre}</option>`).join('');fpEl.value=sv;}
+  // Poblar filtro de tipo de material (prefijos de código)
+  const fmEl=document.getElementById('almFiltMat');
+  if(fmEl){const sv=_almFiltMat;const pref=[...new Set(DB.almacen.map(r=>r.codigo?r.codigo.split('-')[0]:'').filter(Boolean))].sort();fmEl.innerHTML='<option value="">— Tipo de material —</option>'+pref.map(p=>`<option value="${p}">${p}</option>`).join('');fmEl.value=sv;}
+  // Restaurar filtros
+  const ftEl=document.getElementById('almFiltTipo');if(ftEl&&ftEl.value!==_almFiltTipo)ftEl.value=_almFiltTipo;
+  const fdEl=document.getElementById('almFiltFecha');if(fdEl&&fdEl.value!==_almFiltFecha)fdEl.value=_almFiltFecha;
   // Ordenar por fecha y luego por id para Kardex cronológico
   const filas=[...DB.almacen].sort((a,b)=>a.fecha<b.fecha?-1:a.fecha>b.fecha?1:a.id-b.id);
-  // Restaurar valor del select tras re-render
-  const ftEl=document.getElementById('almFiltTipo');if(ftEl&&ftEl.value!==_almFiltTipo)ftEl.value=_almFiltTipo;
   // Pre-calcular saldo acumulado por código sobre TODAS las filas (running balance correcto)
   const saldoMap={},saldos={};
   filas.forEach(r=>{
@@ -3103,8 +3131,11 @@ function rAlm(){
     saldos[r.codigo]+=(r.tipo==='E'?1:-1)*r.cant;
     saldoMap[r.id]=saldos[r.codigo];
   });
-  // Filtrar filas a mostrar según tipo de movimiento
-  const filasMostrar=_almFiltTipo?filas.filter(r=>r.tipo===_almFiltTipo):filas;
+  // Aplicar todos los filtros
+  let filasMostrar=_almFiltTipo?filas.filter(r=>r.tipo===_almFiltTipo):filas;
+  if(_almFiltProy)filasMostrar=filasMostrar.filter(r=>(r.codProy||'').trim()===_almFiltProy);
+  if(_almFiltMat)filasMostrar=filasMostrar.filter(r=>r.codigo&&r.codigo.toUpperCase().startsWith(_almFiltMat.toUpperCase()+'-'));
+  if(_almFiltFecha)filasMostrar=filasMostrar.filter(r=>r.fecha===_almFiltFecha);
   document.getElementById('tbAlm').innerHTML=filasMostrar.map(r=>{
     const saldo=saldoMap[r.id];
     return`<tr><td class="mono">${r.fecha}</td>
