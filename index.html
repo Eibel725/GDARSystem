@@ -491,21 +491,21 @@ select option{background:var(--panel2);}
         <button class="btn btn-del btn-sm" style="padding:.35rem .85rem;font-size:.77rem;background:rgba(239,68,68,.18);border-color:#ef4444" onclick="openAlmSM()">⬇ Salida Múltiple</button>
         <button class="btn btn-out btn-sm" style="padding:.35rem .85rem;font-size:.77rem;border-color:#3b82f6;color:#3b82f6" onclick="openPrintVale()">🖨 Imprimir Vale</button>
       </div>
-      <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
-        <select id="almFiltTipo" class="sel" style="min-width:115px" onchange="_almChangeFilt()">
+      <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:nowrap;overflow-x:auto">
+        <select id="almFiltTipo" class="sel" style="flex:0 0 auto;width:110px;font-size:.75rem" onchange="_almChangeFilt()">
           <option value="">— Todos —</option>
           <option value="E">⬆ Entrada</option>
           <option value="S">⬇ Salida</option>
         </select>
-        <select id="almFiltProy" class="sel" style="min-width:170px" onchange="_almChangeFilt()">
+        <select id="almFiltProy" class="sel" style="flex:1 1 0;min-width:0;font-size:.75rem" onchange="_almChangeFilt()">
           <option value="">— Todos los proyectos —</option>
         </select>
-        <select id="almFiltMat" class="sel" style="min-width:145px" onchange="_almChangeFilt()">
-          <option value="">— Tipo de material —</option>
+        <select id="almFiltMat" class="sel" style="flex:0 0 auto;width:130px;font-size:.75rem" onchange="_almChangeFilt()">
+          <option value="">— Tipo material —</option>
         </select>
-        <input id="almFiltFecha" type="date" class="sel" style="min-width:135px;cursor:pointer" onchange="_almChangeFilt()">
-        <button class="btn btn-out btn-sm" style="padding:.28rem .5rem;font-size:.72rem;border-color:#64748b;color:#64748b" onclick="document.getElementById('almFiltFecha').value='';_almChangeFilt()" title="Limpiar fecha">✕ Fecha</button>
-        <div class="search-wrap"><span>🔍</span><input class="search-input" placeholder="Buscar..." oninput="flt(this,'tbAlm')"></div>
+        <input id="almFiltFecha" type="date" class="sel" style="flex:0 0 auto;width:130px;font-size:.75rem;cursor:pointer" onchange="_almChangeFilt()">
+        <button class="btn btn-out btn-sm" style="flex:0 0 auto;padding:.28rem .45rem;font-size:.72rem;border-color:#64748b;color:#64748b;white-space:nowrap" onclick="document.getElementById('almFiltFecha').value='';_almChangeFilt()" title="Limpiar fecha">✕</button>
+        <div class="search-wrap" style="flex:0 0 auto"><span>🔍</span><input class="search-input" placeholder="Buscar..." oninput="flt(this,'tbAlm')"></div>
       </div>
     </div>
     <div class="card-body"><div class="tbl-wrap"><table>
