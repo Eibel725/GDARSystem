@@ -505,7 +505,7 @@ select option{background:var(--panel2);}
         </select>
         <input id="almFiltFecha" type="date" class="sel" style="flex:0 0 auto;width:130px;font-size:.75rem;cursor:pointer" onchange="_almChangeFilt()">
         <button class="btn btn-out btn-sm" style="flex:0 0 auto;padding:.28rem .45rem;font-size:.72rem;border-color:#64748b;color:#64748b;white-space:nowrap" onclick="document.getElementById('almFiltFecha').value='';_almChangeFilt()" title="Limpiar fecha">✕</button>
-        <div class="search-wrap" style="flex:0 0 auto"><span>🔍</span><input class="search-input" placeholder="Buscar..." oninput="flt(this,'tbAlm')"></div>
+        <div class="search-wrap" style="flex:0 0 auto"><span>🔍</span><input id="almFiltBuscar" class="search-input" placeholder="Buscar..." oninput="_almChangeFilt()"></div>
       </div>
     </div>
     <div class="card-body"><div class="tbl-wrap"><table>
@@ -2678,7 +2678,7 @@ function getStock(){
   });
   return s;
 }
-let _almFiltTipo='',_almFiltProy='',_almFiltMat='',_almFiltFecha='',_almEditId=null,_almPage=0;
+let _almFiltTipo='',_almFiltProy='',_almFiltMat='',_almFiltFecha='',_almFiltText='',_almEditId=null,_almPage=0;
 const ALM_PAGE_SIZE=20;
 
 async function _autoUpdateRqEstForRq(rq){
@@ -2746,6 +2746,7 @@ function _almChangeFilt(){
   _almFiltProy=(document.getElementById('almFiltProy')||{}).value||'';
   _almFiltMat=(document.getElementById('almFiltMat')||{}).value||'';
   _almFiltFecha=(document.getElementById('almFiltFecha')||{}).value||'';
+  _almFiltText=((document.getElementById('almFiltBuscar')||{}).value||'').trim().toLowerCase();
   _almPage=0;
   rAlm();
 }
@@ -3165,6 +3166,7 @@ function rAlm(){
   if(_almFiltProy)filasMostrar=filasMostrar.filter(r=>(r.codProy||'').trim()===_almFiltProy);
   if(_almFiltMat)filasMostrar=filasMostrar.filter(r=>r.codigo&&r.codigo.toUpperCase().startsWith(_almFiltMat.toUpperCase()+'-'));
   if(_almFiltFecha)filasMostrar=filasMostrar.filter(r=>r.fecha===_almFiltFecha);
+  if(_almFiltText)filasMostrar=filasMostrar.filter(r=>[r.codigo,r.nombre,r.proyecto,r.rqRef,r.numVale,r.para,r.tipoCosto].some(v=>String(v||'').toLowerCase().includes(_almFiltText)));
   // Paginación
   const _almTotal=filasMostrar.length;
   const _almTotalPags=Math.max(1,Math.ceil(_almTotal/ALM_PAGE_SIZE));
