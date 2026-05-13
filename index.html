@@ -2958,9 +2958,10 @@ function removeSMItem(i){smItemsArr.splice(i,1);renderSMItems();}
 function renderSMItems(){
   const st=getStock();
   const smProyEl=document.getElementById('smProyecto');
-  const smProyOpt=smProyEl&&smProyEl.selectedIndex>0?smProyEl.options[smProyEl.selectedIndex]:null;
-  const smCodProy=smProyOpt?smProyOpt.dataset.cod:'';
-  const codsEnProy=smCodProy?new Set(DB.almacen.filter(r=>r.tipo==='E'&&(r.codProy||'').trim()===smCodProy).map(r=>r.codigo)):null;
+  const smProyNom=smProyEl?smProyEl.value:'';
+  const smProy=smProyNom?DB.proyectos.find(p=>p.nombre===smProyNom):null;
+  const smCodProy=smProy?smProy.codigo:'';
+  const codsEnProy=smProyNom?new Set(DB.almacen.filter(r=>r.tipo==='E'&&((smCodProy&&(r.codProy||'').trim()===smCodProy)||(r.proyecto||'').trim()===smProyNom)).map(r=>r.codigo)):null;
   const allStock=Object.entries(st).filter(([cod,v])=>v.stock>0&&(!codsEnProy||codsEnProy.has(cod)));
   const b=document.getElementById('smItemsBody');if(!b)return;
   b.innerHTML=smItemsArr.map((it,i)=>{
