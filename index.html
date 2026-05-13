@@ -2405,7 +2405,7 @@ function rPersonal(){
     return`<tr>
     <td class="mono">${p.dni}</td><td><strong>${p.ape}, ${p.nom}</strong></td><td>${p.cargo}</td>
     <td><span class="badge b-blue">${p.cat}</span></td>
-    <td>${proy?`<span class="mono" style="font-size:.73rem;color:#a78bfa">[${proy.codigo}] ${proy.nombre}</span>`:'<span style="color:var(--muted)">—</span>'}</td>
+    <td>${proy?`<span class="mono" style="font-size:.73rem;color:#a78bfa">${proy.codigo}</span>`:'<span style="color:var(--muted)">—</span>'}</td>
     <td>${p.proc||'<span style="color:var(--muted)">—</span>'}</td>
     <td>${p.tipo?`<span class="badge" style="background:${p.tipo==='Staff'?'rgba(99,102,241,.2)':'rgba(16,185,129,.2)'};color:${p.tipo==='Staff'?'#818cf8':'#34d399'};border:1px solid ${p.tipo==='Staff'?'#818cf860':'#34d39960'}">${p.tipo}</span>`:'<span style="color:var(--muted)">—</span>'}</td>
     <td>${p.guardia?`<span class="badge" style="background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid #f59e0b60">Grd. ${p.guardia}</span>`:'<span style="color:var(--muted)">—</span>'}</td>
