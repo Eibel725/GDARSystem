@@ -3140,7 +3140,7 @@ function rAlm(){
     const pref=[...new Set(DB.almacen.map(r=>r.codigo?r.codigo.split('-')[0]:'').filter(Boolean))].sort();
     const _reqNom=Object.fromEntries(Object.entries(REQ_PREFIXES).map(([nom,pre])=>[pre.replace('-','').toUpperCase(),nom]));
     const _getAbrev=t=>(t.abrev||t.abreviatura||'').trim().toUpperCase();
-    fmEl.innerHTML='<option value="">— Tipo de material —</option>'+pref.map(p=>{
+    fmEl.innerHTML='<option value="">— Todos —</option>'+pref.map(p=>{
       const pU=p.trim().toUpperCase();
       const tm=DB.tipoMaterial.find(t=>_getAbrev(t)===pU);
       const nombre=tm?tm.nombre:(_reqNom[pU]||'');
