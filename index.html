@@ -1217,10 +1217,11 @@ select option{background:var(--panel2);}
 </div></div>
 
 <!-- Imprimir Vale -->
-<div class="mo" id="mPrintVale"><div class="modal" style="max-width:400px">
+<div class="mo" id="mPrintVale"><div class="modal" style="max-width:440px">
   <div class="mh"><span class="mttl">🖨 Imprimir Vale de Salida</span><button class="mx" onclick="closeM('mPrintVale')">✕</button></div>
   <div class="mb">
-    <div class="fg"><label>Seleccionar N° de Vale</label><select id="printValeSel" style="width:100%"></select></div>
+    <div class="fg"><label>Proyecto</label><select id="printValeProy" style="width:100%" onchange="_printValeFiltrar()"><option value="">— Todos los proyectos —</option></select></div>
+    <div class="fg" style="margin-top:.6rem"><label>Seleccionar N° de Vale</label><select id="printValeSel" style="width:100%"></select></div>
   </div>
   <div class="mf"><button class="btn btn-out" onclick="closeM('mPrintVale')">Cancelar</button><button class="btn btn-a" style="--ba:#3b82f6" onclick="printVale()">🖨 Imprimir / PDF</button></div>
 </div></div>
@@ -3017,11 +3018,18 @@ function gAlmSM(){
   toast('✓ '+validos.length+' salida(s) registradas – Vale: '+vale);
 }
 function openPrintVale(){
-  const vales=[...new Set(DB.almacen.filter(r=>r.tipo==='S'&&r.numVale&&String(r.numVale).trim()).map(r=>String(r.numVale).trim()))].sort();
-  if(!vales.length){toast('No hay vales registrados',true);return;}
-  const sel=document.getElementById('printValeSel');
-  sel.innerHTML=vales.map(v=>`<option value="${v}">${v}</option>`).join('');
+  if(!DB.almacen.some(r=>r.tipo==='S'&&r.numVale)){toast('No hay vales registrados',true);return;}
+  const pSel=document.getElementById('printValeProy');
+  if(pSel){pSel.innerHTML='<option value="">— Todos los proyectos —</option>'+DB.proyectos.map(p=>`<option value="${p.codigo}">[${p.codigo}] ${p.nombre}</option>`).join('');pSel.value='';}
+  _printValeFiltrar();
   openM('mPrintVale');
+}
+function _printValeFiltrar(){
+  const codProy=(document.getElementById('printValeProy')||{}).value||'';
+  const movs=DB.almacen.filter(r=>r.tipo==='S'&&r.numVale&&String(r.numVale).trim()&&(!codProy||(r.codProy||'').trim()===codProy));
+  const vales=[...new Set(movs.map(r=>String(r.numVale).trim()))].sort();
+  const sel=document.getElementById('printValeSel');
+  if(sel)sel.innerHTML=vales.length?vales.map(v=>`<option value="${v}">${v}</option>`).join(''):'<option value="">— Sin vales para este proyecto —</option>';
 }
 function printVale(){
   const vale=document.getElementById('printValeSel').value;if(!vale)return;
