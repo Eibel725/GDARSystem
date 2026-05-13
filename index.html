@@ -2955,14 +2955,22 @@ function openAlmSM(){
 }
 function addSMItem(){smItemsArr.push({cod:'',cant:1});renderSMItems();}
 function removeSMItem(i){smItemsArr.splice(i,1);renderSMItems();}
+function _getStockProy(codProy,proyNom){
+  const movs=DB.almacen.filter(r=>(codProy&&(r.codProy||'').trim()===codProy)||(proyNom&&(r.proyecto||'').trim()===proyNom));
+  const map={};
+  movs.forEach(r=>{
+    if(!map[r.codigo])map[r.codigo]={stock:0,nombre:r.nombre,unidad:r.unidad};
+    map[r.codigo].stock+=(r.tipo==='E'?1:-1)*(+r.cant||0);
+  });
+  return map;
+}
 function renderSMItems(){
-  const st=getStock();
   const smProyEl=document.getElementById('smProyecto');
   const smProyNom=smProyEl?smProyEl.value:'';
   const smProy=smProyNom?DB.proyectos.find(p=>p.nombre===smProyNom):null;
   const smCodProy=smProy?smProy.codigo:'';
-  const codsEnProy=smProyNom?new Set(DB.almacen.filter(r=>r.tipo==='E'&&((smCodProy&&(r.codProy||'').trim()===smCodProy)||(r.proyecto||'').trim()===smProyNom)).map(r=>r.codigo)):null;
-  const allStock=Object.entries(st).filter(([cod,v])=>v.stock>0&&(!codsEnProy||codsEnProy.has(cod)));
+  const st=smProyNom?_getStockProy(smCodProy,smProyNom):getStock();
+  const allStock=Object.entries(st).filter(([,v])=>v.stock>0);
   const b=document.getElementById('smItemsBody');if(!b)return;
   b.innerHTML=smItemsArr.map((it,i)=>{
     const sv=st[it.cod];
@@ -2986,12 +2994,13 @@ function gAlmSM(){
   const smProyEl=document.getElementById('smProyecto');
   const smProyOpt=smProyEl&&smProyEl.selectedIndex>0?smProyEl.options[smProyEl.selectedIndex]:null;
   const proy=smProyEl?smProyEl.value:'';
-  const codProy=smProyOpt&&smProyOpt.dataset.cod?smProyOpt.dataset.cod:'';
+  const smProyObj=proy?DB.proyectos.find(p=>p.nombre===proy):null;
+  const codProy=smProyObj?smProyObj.codigo:(smProyOpt&&smProyOpt.dataset.cod?smProyOpt.dataset.cod:'');
   const fecha=document.getElementById('smF').value||today();
   const para=document.getElementById('smPers').value+(document.getElementById('smDest').value?' – '+document.getElementById('smDest').value:'');
   const tc=document.getElementById('smTc').value;
   const obs=document.getElementById('smObs').value;
-  const st=getStock();
+  const st=proy?_getStockProy(codProy,proy):getStock();
   const validos=smItemsArr.filter(it=>it.cod&&+it.cant>0);
   if(!validos.length){toast('Agregue al menos un material',true);return;}
   for(const it of validos){
