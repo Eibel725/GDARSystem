@@ -697,7 +697,7 @@ select option{background:var(--panel2);}
       </div>
     </div>
     <div class="card-body"><div class="tbl-wrap"><table>
-      <thead><tr><th>Código</th><th>Equipo</th><th>Tipo</th><th>Marca</th><th>Modelo</th><th>Año</th><th>Placa/Serie</th><th>Horometro</th><th>Estado</th><th>S//h</th><th></th></tr></thead>
+      <thead><tr><th>Código</th><th>Equipo</th><th>Tipo</th><th>Marca</th><th>Modelo</th><th>Año</th><th>N° Serie</th><th>Placa</th><th>HP</th><th>M³</th><th>Peso KG</th><th>Dimensiones</th><th>Horómetro</th><th>Estado</th><th>Ubicación</th><th>F. Llegada</th><th>F. Salida</th><th>Status</th><th>SOAT</th><th>P. TREC</th><th>Rev. Técnica</th><th>GPS</th><th>Proveedor</th><th>Contacto</th><th>Celular</th><th>Correo</th><th>H. Mín.</th><th>Tarifa S/</th><th>S//h</th><th>Inicio Contrato</th><th>Término Contrato</th><th>CC GET'S</th><th>CC Engrase</th><th>CC R.Niv.</th><th>CC M.Prev.</th><th>CC M.Corr.</th><th></th></tr></thead>
       <tbody id="tbMaster"></tbody>
     </table></div></div>
   </div>
@@ -1427,9 +1427,10 @@ select option{background:var(--panel2);}
 </div></div>
 
 <!-- Equipo Modal -->
-<div class="mo" id="mEquipo"><div class="modal">
+<div class="mo" id="mEquipo"><div class="modal" style="max-width:700px">
   <div class="mh"><span class="mttl">Agregar Equipo</span><button class="mx" onclick="closeM('mEquipo')">✕</button></div>
-  <div class="mb"><div class="fg-grid">
+  <div class="mb" style="max-height:74vh;overflow-y:auto"><div class="fg-grid">
+    <div class="fg" style="grid-column:1/-1;font-size:.79rem;font-weight:700;color:var(--mec);padding:.1rem 0 .25rem;border-bottom:1px solid var(--border)">▸ Datos Generales</div>
     <div class="fg"><label>Código</label><input id="eqCod" placeholder="EQ-001"></div>
     <div class="fg" style="grid-column:span 2"><label>Nombre del Equipo</label><input id="eqNom" placeholder="Retroexcavadora CAT 320D"></div>
     <div class="fg"><label>Tipo / Línea</label><select id="eqTi"><option>Línea Amarilla</option><option>Línea Blanca</option><option>Vehículo Menor</option><option>Equipos Complementarios</option></select></div>
@@ -1437,10 +1438,39 @@ select option{background:var(--panel2);}
     <div class="fg"><label>Marca</label><input id="eqMa" placeholder="CAT / Komatsu / Volvo"></div>
     <div class="fg"><label>Modelo</label><input id="eqMo" placeholder="320D"></div>
     <div class="fg"><label>Año</label><input id="eqAn" type="number" placeholder="2020"></div>
-    <div class="fg"><label>Placa / Serie</label><input id="eqPl" placeholder="ABC-123"></div>
+    <div class="fg"><label>Placa</label><input id="eqPl" placeholder="ABC-123"></div>
     <div class="fg"><label>Horómetro Inicial</label><input id="eqHr" type="number" value="0"></div>
     <div class="fg"><label>Estado</label><select id="eqEst"><option>Operativo</option><option>En Mantenimiento</option><option>Parado</option><option>Inoperativo</option></select></div>
     <div class="fg"><label>Costo/Hora S/</label><input id="eqCh" type="number" placeholder="120"></div>
+    <div class="fg" style="grid-column:1/-1;font-size:.79rem;font-weight:700;color:var(--mec);padding:.3rem 0 .25rem;border-bottom:1px solid var(--border);margin-top:.4rem">▸ Datos Técnicos</div>
+    <div class="fg"><label>N° de Serie</label><input id="eqNs" placeholder="SN-XXXXXX"></div>
+    <div class="fg"><label>Potencia HP</label><input id="eqPhp" type="number" placeholder="0"></div>
+    <div class="fg"><label>Capacidad M³</label><input id="eqCm3" type="number" placeholder="0"></div>
+    <div class="fg"><label>Peso KG</label><input id="eqPkg" type="number" placeholder="0"></div>
+    <div class="fg"><label>Dimensiones (LxAxH)</label><input id="eqDim" placeholder="5.2x2.5x3.1 m"></div>
+    <div class="fg"><label>Ubicación</label><input id="eqUbi" placeholder="Frente / Cantera"></div>
+    <div class="fg"><label>Fecha de Llegada</label><input id="eqFll" type="date"></div>
+    <div class="fg"><label>Fecha de Salida</label><input id="eqFls" type="date"></div>
+    <div class="fg"><label>Status</label><select id="eqSts"><option value="">— Seleccionar —</option><option>Activo</option><option>Inactivo</option><option>En Tránsito</option><option>Alquilado</option></select></div>
+    <div class="fg"><label>SOAT</label><input id="eqSoat" placeholder="N° / Vencimiento"></div>
+    <div class="fg"><label>Póliza TREC</label><input id="eqPtr" placeholder="N° / Vencimiento"></div>
+    <div class="fg"><label>Revisión Técnica</label><input id="eqRtec" placeholder="N° / Vencimiento"></div>
+    <div class="fg"><label>GPS</label><input id="eqGps" placeholder="Proveedor / ID"></div>
+    <div class="fg" style="grid-column:1/-1;font-size:.79rem;font-weight:700;color:var(--mec);padding:.3rem 0 .25rem;border-bottom:1px solid var(--border);margin-top:.4rem">▸ Proveedor / Contrato</div>
+    <div class="fg"><label>Proveedor</label><input id="eqProv"></div>
+    <div class="fg"><label>Contacto</label><input id="eqCtc"></div>
+    <div class="fg"><label>Celular</label><input id="eqCel"></div>
+    <div class="fg"><label>Correo</label><input id="eqCor" type="email"></div>
+    <div class="fg"><label>Horas Mínimas</label><input id="eqHmin" type="number" placeholder="0"></div>
+    <div class="fg"><label>Tarifa S/.</label><input id="eqTar" type="number" placeholder="0"></div>
+    <div class="fg"><label>Inicio Contrato</label><input id="eqIco" type="date"></div>
+    <div class="fg"><label>Término Contrato</label><input id="eqTco" type="date"></div>
+    <div class="fg" style="grid-column:1/-1;font-size:.79rem;font-weight:700;color:var(--mec);padding:.3rem 0 .25rem;border-bottom:1px solid var(--border);margin-top:.4rem">▸ Centro de Costos – Mantenimiento</div>
+    <div class="fg"><label>C.C. GET'S S/</label><input id="eqCcg" type="number" placeholder="0"></div>
+    <div class="fg"><label>C.C. Engrase S/</label><input id="eqCce" type="number" placeholder="0"></div>
+    <div class="fg"><label>C.C. Relleno Niveles S/</label><input id="eqCcrn" type="number" placeholder="0"></div>
+    <div class="fg"><label>C.C. Mant. Preventivo S/</label><input id="eqCcmp" type="number" placeholder="0"></div>
+    <div class="fg"><label>C.C. Mant. Correctivo S/</label><input id="eqCcmc" type="number" placeholder="0"></div>
   </div></div>
   <div class="mf"><button class="btn btn-out" onclick="closeM('mEquipo')">Cancelar</button><button class="btn btn-a" style="--ba:var(--mec)" onclick="gEquipo()">Guardar</button></div>
 </div></div>
@@ -4315,19 +4345,87 @@ function gAmb(){DB.ambiental.push({id:nid('amb'),fecha:document.getElementById('
 // ══ MANTENIMIENTO ══
 function rMaster(){
   document.getElementById('tbMaster').innerHTML=DB.equipos.map(e=>`<tr>
-    <td class="mono" style="color:var(--mec)">${e.codigo}</td><td><strong>${e.nombre}</strong></td>
-    <td><span class="badge b-purple">${e.tipo}</span></td><td>${e.marca}</td><td>${e.modelo}</td>
-    <td>${e.anio}</td><td class="mono">${e.placa}</td>
-    <td class="mono">${fmtN(e.hr)} h</td><td>${bge(e.est)}</td>
+    <td class="mono" style="color:var(--mec)">${e.codigo}</td>
+    <td><strong>${e.nombre}</strong></td>
+    <td><span class="badge b-purple">${e.tipo}</span></td>
+    <td>${e.marca||'—'}</td><td>${e.modelo||'—'}</td><td>${e.anio||'—'}</td>
+    <td class="mono">${e.numSerie||'—'}</td>
+    <td class="mono">${e.placa||'—'}</td>
+    <td class="tr mono">${e.potenciaHp!=null&&e.potenciaHp!==''?e.potenciaHp:'—'}</td>
+    <td class="tr mono">${e.capacidadM3!=null&&e.capacidadM3!==''?e.capacidadM3:'—'}</td>
+    <td class="tr mono">${e.pesoKg!=null&&e.pesoKg!==''?e.pesoKg:'—'}</td>
+    <td>${e.dimensiones||'—'}</td>
+    <td class="mono">${fmtN(e.hr)} h</td>
+    <td>${bge(e.est)}</td>
+    <td>${e.ubicacion||'—'}</td>
+    <td class="mono">${e.fechaLlegada||'—'}</td>
+    <td class="mono">${e.fechaSalida||'—'}</td>
+    <td>${e.status||'—'}</td>
+    <td>${e.soat||'—'}</td>
+    <td>${e.polizaTrec||'—'}</td>
+    <td>${e.revisionTecnica||'—'}</td>
+    <td>${e.gps||'—'}</td>
+    <td>${e.proveedor||'—'}</td>
+    <td>${e.contacto||'—'}</td>
+    <td>${e.celular||'—'}</td>
+    <td>${e.correo||'—'}</td>
+    <td class="tr mono">${e.horasMinimas!=null&&e.horasMinimas!==''?fmtN(e.horasMinimas):'—'}</td>
+    <td class="tr mono">${e.tarifa?fmt(e.tarifa):'—'}</td>
     <td class="mono">${fmt(e.ch)}/h</td>
+    <td class="mono">${e.inicioContrato||'—'}</td>
+    <td class="mono">${e.terminoContrato||'—'}</td>
+    <td class="tr mono">${e.ccGets?fmt(e.ccGets):'—'}</td>
+    <td class="tr mono">${e.ccEngrase?fmt(e.ccEngrase):'—'}</td>
+    <td class="tr mono">${e.ccRellenoNiveles?fmt(e.ccRellenoNiveles):'—'}</td>
+    <td class="tr mono">${e.ccMantPreventivo?fmt(e.ccMantPreventivo):'—'}</td>
+    <td class="tr mono">${e.ccMantCorrectivo?fmt(e.ccMantCorrectivo):'—'}</td>
     <td><button class="btn btn-del btn-sm" onclick="del('equipos',${e.id})">🗑</button></td>
   </tr>`).join('');
 }
 function gEquipo(){
   const cod=document.getElementById('eqCod').value.trim(),nom=document.getElementById('eqNom').value.trim();
   if(!cod||!nom){toast('Ingrese código y nombre',true);return;}
-  DB.equipos.push({id:nid('eq'),codigo:cod,nombre:nom,tipo:document.getElementById('eqTi').value,sub:document.getElementById('eqSub').value,marca:document.getElementById('eqMa').value,modelo:document.getElementById('eqMo').value,anio:+document.getElementById('eqAn').value||2020,placa:document.getElementById('eqPl').value,hr:+document.getElementById('eqHr').value||0,est:document.getElementById('eqEst').value,ch:+document.getElementById('eqCh').value||0,ultMant:'—',proxMant:'—'});
-  syncSheet('saveEquipo',DB.equipos[DB.equipos.length-1]);
+  const eq={
+    id:nid('eq'),codigo:cod,nombre:nom,
+    tipo:document.getElementById('eqTi').value,
+    sub:document.getElementById('eqSub').value,
+    marca:document.getElementById('eqMa').value,
+    modelo:document.getElementById('eqMo').value,
+    anio:+document.getElementById('eqAn').value||2020,
+    placa:document.getElementById('eqPl').value,
+    hr:+document.getElementById('eqHr').value||0,
+    est:document.getElementById('eqEst').value,
+    ch:+document.getElementById('eqCh').value||0,
+    numSerie:document.getElementById('eqNs').value,
+    potenciaHp:+document.getElementById('eqPhp').value||null,
+    capacidadM3:+document.getElementById('eqCm3').value||null,
+    pesoKg:+document.getElementById('eqPkg').value||null,
+    dimensiones:document.getElementById('eqDim').value,
+    ubicacion:document.getElementById('eqUbi').value,
+    fechaLlegada:document.getElementById('eqFll').value||null,
+    fechaSalida:document.getElementById('eqFls').value||null,
+    status:document.getElementById('eqSts').value,
+    soat:document.getElementById('eqSoat').value,
+    polizaTrec:document.getElementById('eqPtr').value,
+    revisionTecnica:document.getElementById('eqRtec').value,
+    gps:document.getElementById('eqGps').value,
+    proveedor:document.getElementById('eqProv').value,
+    contacto:document.getElementById('eqCtc').value,
+    celular:document.getElementById('eqCel').value,
+    correo:document.getElementById('eqCor').value,
+    horasMinimas:+document.getElementById('eqHmin').value||null,
+    tarifa:+document.getElementById('eqTar').value||null,
+    inicioContrato:document.getElementById('eqIco').value||null,
+    terminoContrato:document.getElementById('eqTco').value||null,
+    ccGets:+document.getElementById('eqCcg').value||null,
+    ccEngrase:+document.getElementById('eqCce').value||null,
+    ccRellenoNiveles:+document.getElementById('eqCcrn').value||null,
+    ccMantPreventivo:+document.getElementById('eqCcmp').value||null,
+    ccMantCorrectivo:+document.getElementById('eqCcmc').value||null,
+    ultMant:'—',proxMant:'—'
+  };
+  DB.equipos.push(eq);
+  syncSheet('saveEquipo',eq);
   closeM('mEquipo');rMaster();toast('Equipo agregado');
 }
 function rProg(){
