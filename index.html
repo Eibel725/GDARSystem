@@ -13,7 +13,7 @@
   --bg:#0a1330;--panel:#131623;--panel2:#171d2e;--border:#1e2740;
   --text:#ffffff;--muted:#3d5070;--muted2:#6b85a8;
   --adm:#3b82f6;--bsw:#ec4899;--alm:#f97316;--ope:#f59e0b;
-  --seg:#ef4444;--mec:#8b5cf6;--ctl:#10b981;--ceq:#06b6d4;--otr:#a78bfa;
+  --seg:#ef4444;--mec:#044e64;--ctl:#10b981;--ceq:#06b6d4;--otr:#a78bfa;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;min-height:100vh;overflow-x:hidden;}
@@ -344,7 +344,7 @@ select option{background:var(--panel2);}
       </div>
     </div>
     <div class="card-body"><div class="tbl-wrap"><table>
-      <thead><tr><th>DNI</th><th>Apellidos y Nombres</th><th>Cargo</th><th>Categoría</th><th>Procedencia</th><th>Tipo</th><th>Guardia</th><th>F. Ingreso</th><th>Básico S/</th><th>Estado</th><th></th></tr></thead>
+      <thead><tr><th>DNI</th><th>Apellidos y Nombres</th><th>Cargo</th><th>Categoría</th><th>Proyecto</th><th>Procedencia</th><th>Tipo</th><th>Guardia</th><th>F. Ingreso</th><th>Básico S/</th><th>Estado</th><th>Notas</th><th></th></tr></thead>
       <tbody id="tbPersonal"></tbody>
     </table></div></div>
   </div>
@@ -1034,6 +1034,7 @@ select option{background:var(--panel2);}
 <div class="mo" id="mPersonal"><div class="modal">
   <div class="mh"><span class="mttl">Agregar Trabajador</span><button class="mx" onclick="closeM('mPersonal')">✕</button></div>
   <div class="mb"><div class="fg-grid">
+    <div class="fg" style="grid-column:1/-1"><label>Proyecto Asignado</label><select id="wProy"><option value="">— Sin proyecto —</option></select></div>
     <div class="fg"><label>DNI</label><input id="wDni" placeholder="12345678" maxlength="8"></div>
     <div class="fg"><label>Apellidos</label><input id="wApe"></div>
     <div class="fg"><label>Nombres</label><input id="wNom"></div>
@@ -1046,6 +1047,7 @@ select option{background:var(--panel2);}
     <div class="fg"><label>Sueldo Base S/</label><input id="wSue" type="number" placeholder="1800"></div>
     <div class="fg"><label>Asig. Familiar</label><select id="wAsig"><option value="1">Sí (S/ 113.00)</option><option value="0">No</option></select></div>
     <div class="fg"><label>Estado</label><select id="wEst"><option>Activo</option><option>De Permiso</option><option>Inactivo</option></select></div>
+    <div class="fg" style="grid-column:1/-1"><label>Notas</label><textarea id="wNotas" rows="2" style="resize:vertical" placeholder="Observaciones, condiciones especiales..."></textarea></div>
   </div></div>
   <div class="mf"><button class="btn btn-out" onclick="closeM('mPersonal')">Cancelar</button><button class="btn btn-a" style="--ba:var(--adm)" onclick="gPersonal()">Guardar</button></div>
 </div></div>
@@ -2398,26 +2400,34 @@ function rDash(){
 
 // ══ PERSONAL ══
 function rPersonal(){
-  document.getElementById('tbPersonal').innerHTML=DB.personal.map(p=>`<tr>
+  document.getElementById('tbPersonal').innerHTML=DB.personal.map(p=>{
+    const proy=p.proy?DB.proyectos.find(x=>x.codigo===p.proy):null;
+    return`<tr>
     <td class="mono">${p.dni}</td><td><strong>${p.ape}, ${p.nom}</strong></td><td>${p.cargo}</td>
     <td><span class="badge b-blue">${p.cat}</span></td>
+    <td>${proy?`<span class="mono" style="font-size:.73rem;color:#a78bfa">[${proy.codigo}] ${proy.nombre}</span>`:'<span style="color:var(--muted)">—</span>'}</td>
     <td>${p.proc||'<span style="color:var(--muted)">—</span>'}</td>
     <td>${p.tipo?`<span class="badge" style="background:${p.tipo==='Staff'?'rgba(99,102,241,.2)':'rgba(16,185,129,.2)'};color:${p.tipo==='Staff'?'#818cf8':'#34d399'};border:1px solid ${p.tipo==='Staff'?'#818cf860':'#34d39960'}">${p.tipo}</span>`:'<span style="color:var(--muted)">—</span>'}</td>
     <td>${p.guardia?`<span class="badge" style="background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid #f59e0b60">Grd. ${p.guardia}</span>`:'<span style="color:var(--muted)">—</span>'}</td>
     <td class="mono">${p.ing}</td>
     <td class="mono">${fmt(p.sue)}</td><td>${bge(p.est)}</td>
+    <td style="max-width:160px;font-size:.75rem;color:var(--muted2)">${p.notas||'<span style="color:var(--muted)">—</span>'}</td>
     <td style="display:flex;gap:.3rem"><button class="btn btn-sm" style="background:rgba(245,158,11,.15);border:1px solid #f59e0b60;color:#f59e0b" onclick="openPersonalEdit(${p.id})">✏️</button><button class="btn btn-del btn-sm" onclick="del('personal',${p.id})">🗑</button></td>
-  </tr>`).join('');
+  </tr>`;}).join('');
+}
+function _poblarProyPersonal(sel){
+  sel.innerHTML='<option value="">— Sin proyecto —</option>'+DB.proyectos.map(p=>`<option value="${p.codigo}">[${p.codigo}] ${p.nombre}</option>`).join('');
 }
 function openPersonalNew(){
   _editPersonalId=null;
-  ['wDni','wApe','wNom','wCargo','wSue','wProc'].forEach(id=>document.getElementById(id).value='');
+  ['wDni','wApe','wNom','wCargo','wSue','wProc','wNotas'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('wCat').value='Operador A';
   document.getElementById('wTipo').value='';
   document.getElementById('wGuardia').value='';
   document.getElementById('wAsig').value='0';
   document.getElementById('wEst').value='Activo';
   document.getElementById('wIng').value=today();
+  const ps=document.getElementById('wProy');if(ps){_poblarProyPersonal(ps);ps.value='';}
   document.querySelector('#mPersonal .mttl').textContent='Agregar Trabajador';
   openM('mPersonal');
 }
@@ -2436,13 +2446,15 @@ function openPersonalEdit(id){
   document.getElementById('wSue').value=p.sue||'';
   document.getElementById('wAsig').value=p.asig!=null?String(p.asig):'0';
   document.getElementById('wEst').value=p.est||'Activo';
+  document.getElementById('wNotas').value=p.notas||'';
+  const ps=document.getElementById('wProy');if(ps){_poblarProyPersonal(ps);ps.value=p.proy||'';}
   document.querySelector('#mPersonal .mttl').textContent='Editar Trabajador';
   openM('mPersonal');
 }
 function gPersonal(){
   const dni=document.getElementById('wDni').value.trim(),nom=document.getElementById('wNom').value.trim();
   if(!dni||!nom){toast('Ingrese DNI y nombre',true);return;}
-  const rec={dni,ape:document.getElementById('wApe').value,nom,cargo:document.getElementById('wCargo').value,cat:document.getElementById('wCat').value,proc:document.getElementById('wProc').value,tipo:document.getElementById('wTipo').value,guardia:document.getElementById('wGuardia').value,ing:document.getElementById('wIng').value,sue:+document.getElementById('wSue').value||0,asig:+document.getElementById('wAsig').value,est:document.getElementById('wEst').value};
+  const rec={dni,ape:document.getElementById('wApe').value,nom,cargo:document.getElementById('wCargo').value,cat:document.getElementById('wCat').value,proy:document.getElementById('wProy').value,proc:document.getElementById('wProc').value,tipo:document.getElementById('wTipo').value,guardia:document.getElementById('wGuardia').value,ing:document.getElementById('wIng').value,sue:+document.getElementById('wSue').value||0,asig:+document.getElementById('wAsig').value,est:document.getElementById('wEst').value,notas:document.getElementById('wNotas').value};
   if(_editPersonalId){
     const idx=DB.personal.findIndex(x=>x.id===_editPersonalId);
     if(idx>-1){Object.assign(DB.personal[idx],rec);syncSheet('savePersonal',DB.personal[idx]);}
