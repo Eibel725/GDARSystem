@@ -2939,9 +2939,9 @@ function gAlmEM(){
 let smItemsArr=[];
 function _nextValeNum(){
   const vales=DB.almacen.filter(r=>r.tipo==='S'&&r.numVale&&/^VAL-\d+$/i.test(String(r.numVale).trim()));
-  if(!vales.length)return'VAL-001';
+  if(!vales.length)return'VAL-0001';
   const maxN=Math.max(...vales.map(r=>+String(r.numVale).trim().toUpperCase().replace('VAL-','')));
-  return'VAL-'+String(maxN+1).padStart(3,'0');
+  return'VAL-'+String(maxN+1).padStart(4,'0');
 }
 function openAlmSM(){
   smItemsArr=[];
