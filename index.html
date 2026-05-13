@@ -207,6 +207,11 @@ select option{background:var(--panel2);}
 .b-red{background:#ef444414;color:#ef4444;border:1px solid #ef444430;}
 .b-blue{background:#3b82f614;color:#3b82f6;border:1px solid #3b82f630;}
 .b-purple{background:#8b5cf614;color:#8b5cf6;border:1px solid #8b5cf630;}
+/* ── EQ TABS ── */
+.eq-tab{flex:1;padding:.5rem .4rem;font-size:.72rem;font-weight:600;letter-spacing:.04em;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted2);cursor:pointer;transition:color .15s,border-color .15s;}
+.eq-tab:hover{color:var(--mec);}
+.eq-tab-act{color:var(--mec)!important;border-bottom:2px solid var(--mec)!important;}
+.eq-sec{grid-column:1/-1;background:var(--mec);color:#fff;font-size:.75rem;font-weight:700;padding:.3rem .75rem;border-radius:4px;margin-bottom:.1rem;letter-spacing:.05em;}
 .b-pink{background:#ec489914;color:#ec4899;border:1px solid #ec489930;}
 .b-cyan{background:#06b6d414;color:#06b6d4;border:1px solid #06b6d430;}
 .b-orange{background:#f9731614;color:#f97316;border:1px solid #f9731630;}
@@ -693,7 +698,7 @@ select option{background:var(--panel2);}
     <div class="card-head"><span class="card-title">Flota Completa</span>
       <div class="card-head-right">
         <div class="search-wrap"><span>🔍</span><input class="search-input" placeholder="Buscar..." oninput="flt(this,'tbMaster')"></div>
-        <button class="btn btn-a" style="--ba:var(--mec)" onclick="openM('mEquipo')">＋ Agregar</button>
+        <button class="btn btn-a" style="--ba:var(--mec)" onclick="openEquipo()">＋ Agregar</button>
       </div>
     </div>
     <div class="card-body"><div class="tbl-wrap"><table>
@@ -1429,50 +1434,68 @@ select option{background:var(--panel2);}
 <!-- Equipo Modal -->
 <div class="mo" id="mEquipo"><div class="modal" style="max-width:700px">
   <div class="mh"><span class="mttl">Agregar Equipo</span><button class="mx" onclick="closeM('mEquipo')">✕</button></div>
-  <div class="mb" style="max-height:74vh;overflow-y:auto"><div class="fg-grid">
-    <div class="fg" style="grid-column:1/-1;font-size:.79rem;font-weight:700;color:var(--mec);padding:.1rem 0 .25rem;border-bottom:1px solid var(--border)">▸ Datos Generales</div>
-    <div class="fg"><label>Código</label><input id="eqCod" placeholder="EQ-001"></div>
-    <div class="fg" style="grid-column:span 2"><label>Nombre del Equipo</label><input id="eqNom" placeholder="Retroexcavadora CAT 320D"></div>
-    <div class="fg"><label>Tipo / Línea</label><select id="eqTi"><option>Línea Amarilla</option><option>Línea Blanca</option><option>Vehículo Menor</option><option>Equipos Complementarios</option></select></div>
-    <div class="fg"><label>Subtipo</label><select id="eqSub"><option>Excavadora</option><option>Cargador Frontal</option><option>Motoniveladora</option><option>Retroexcavadora</option><option>Tractor Oruga</option><option>Rodillo</option><option>Volquete</option><option>Camioneta</option><option>Bus / Van</option><option>Generador</option><option>Compresor</option><option>Bomba de Agua</option><option>Otro</option></select></div>
-    <div class="fg"><label>Marca</label><input id="eqMa" placeholder="CAT / Komatsu / Volvo"></div>
-    <div class="fg"><label>Modelo</label><input id="eqMo" placeholder="320D"></div>
-    <div class="fg"><label>Año</label><input id="eqAn" type="number" placeholder="2020"></div>
-    <div class="fg"><label>Placa</label><input id="eqPl" placeholder="ABC-123"></div>
-    <div class="fg"><label>Horómetro Inicial</label><input id="eqHr" type="number" value="0"></div>
-    <div class="fg"><label>Estado</label><select id="eqEst"><option>Operativo</option><option>En Mantenimiento</option><option>Parado</option><option>Inoperativo</option></select></div>
-    <div class="fg"><label>Costo/Hora S/</label><input id="eqCh" type="number" placeholder="120"></div>
-    <div class="fg" style="grid-column:1/-1;font-size:.79rem;font-weight:700;color:var(--mec);padding:.3rem 0 .25rem;border-bottom:1px solid var(--border);margin-top:.4rem">▸ Datos Técnicos</div>
-    <div class="fg"><label>N° de Serie</label><input id="eqNs" placeholder="SN-XXXXXX"></div>
-    <div class="fg"><label>Potencia HP</label><input id="eqPhp" type="number" placeholder="0"></div>
-    <div class="fg"><label>Capacidad M³</label><input id="eqCm3" type="number" placeholder="0"></div>
-    <div class="fg"><label>Peso KG</label><input id="eqPkg" type="number" placeholder="0"></div>
-    <div class="fg"><label>Dimensiones (LxAxH)</label><input id="eqDim" placeholder="5.2x2.5x3.1 m"></div>
-    <div class="fg"><label>Ubicación</label><input id="eqUbi" placeholder="Frente / Cantera"></div>
-    <div class="fg"><label>Fecha de Llegada</label><input id="eqFll" type="date"></div>
-    <div class="fg"><label>Fecha de Salida</label><input id="eqFls" type="date"></div>
-    <div class="fg"><label>Status</label><select id="eqSts"><option value="">— Seleccionar —</option><option>Activo</option><option>Inactivo</option><option>En Tránsito</option><option>Alquilado</option></select></div>
-    <div class="fg"><label>SOAT</label><input id="eqSoat" placeholder="N° / Vencimiento"></div>
-    <div class="fg"><label>Póliza TREC</label><input id="eqPtr" placeholder="N° / Vencimiento"></div>
-    <div class="fg"><label>Revisión Técnica</label><input id="eqRtec" placeholder="N° / Vencimiento"></div>
-    <div class="fg"><label>GPS</label><input id="eqGps" placeholder="Proveedor / ID"></div>
-    <div class="fg" style="grid-column:1/-1;font-size:.79rem;font-weight:700;color:var(--mec);padding:.3rem 0 .25rem;border-bottom:1px solid var(--border);margin-top:.4rem">▸ Proveedor / Contrato</div>
-    <div class="fg"><label>Proveedor</label><input id="eqProv"></div>
-    <div class="fg"><label>Contacto</label><input id="eqCtc"></div>
-    <div class="fg"><label>Celular</label><input id="eqCel"></div>
-    <div class="fg"><label>Correo</label><input id="eqCor" type="email"></div>
-    <div class="fg"><label>Horas Mínimas</label><input id="eqHmin" type="number" placeholder="0"></div>
-    <div class="fg"><label>Tarifa S/.</label><input id="eqTar" type="number" placeholder="0"></div>
-    <div class="fg"><label>Inicio Contrato</label><input id="eqIco" type="date"></div>
-    <div class="fg"><label>Término Contrato</label><input id="eqTco" type="date"></div>
-    <div class="fg" style="grid-column:1/-1;font-size:.79rem;font-weight:700;color:var(--mec);padding:.3rem 0 .25rem;border-bottom:1px solid var(--border);margin-top:.4rem">▸ Centro de Costos – Mantenimiento</div>
-    <div class="fg"><label>C.C. GET'S S/</label><input id="eqCcg" type="number" placeholder="0"></div>
-    <div class="fg"><label>C.C. Engrase S/</label><input id="eqCce" type="number" placeholder="0"></div>
-    <div class="fg"><label>C.C. Relleno Niveles S/</label><input id="eqCcrn" type="number" placeholder="0"></div>
-    <div class="fg"><label>C.C. Mant. Preventivo S/</label><input id="eqCcmp" type="number" placeholder="0"></div>
-    <div class="fg"><label>C.C. Mant. Correctivo S/</label><input id="eqCcmc" type="number" placeholder="0"></div>
-  </div></div>
-  <div class="mf"><button class="btn btn-out" onclick="closeM('mEquipo')">Cancelar</button><button class="btn btn-a" style="--ba:var(--mec)" onclick="gEquipo()">Guardar</button></div>
+  <div style="display:flex;border-bottom:1px solid var(--border);padding:0 1rem;gap:0">
+    <button class="eq-tab eq-tab-act" id="eqTab0" onclick="eqGoTab(0)">① Generales</button>
+    <button class="eq-tab" id="eqTab1" onclick="eqGoTab(1)">② Técnicos</button>
+    <button class="eq-tab" id="eqTab2" onclick="eqGoTab(2)">③ Contrato</button>
+    <button class="eq-tab" id="eqTab3" onclick="eqGoTab(3)">④ Costos</button>
+  </div>
+  <div class="mb">
+    <div id="eqP0" class="fg-grid">
+      <div class="eq-sec">Datos Generales</div>
+      <div class="fg"><label>Código</label><input id="eqCod" placeholder="EQ-001"></div>
+      <div class="fg"><label>Tipo / Línea</label><select id="eqTi"><option>Línea Amarilla</option><option>Línea Blanca</option><option>Vehículo Menor</option><option>Equipos Complementarios</option></select></div>
+      <div class="fg"><label>Subtipo</label><select id="eqSub"><option>Excavadora</option><option>Cargador Frontal</option><option>Motoniveladora</option><option>Retroexcavadora</option><option>Tractor Oruga</option><option>Rodillo</option><option>Volquete</option><option>Camioneta</option><option>Bus / Van</option><option>Generador</option><option>Compresor</option><option>Bomba de Agua</option><option>Otro</option></select></div>
+      <div class="fg"><label>Marca</label><input id="eqMa" placeholder="CAT / Komatsu / Volvo"></div>
+      <div class="fg"><label>Modelo</label><input id="eqMo" placeholder="320D"></div>
+      <div class="fg"><label>Año</label><input id="eqAn" type="number" placeholder="2020"></div>
+      <div class="fg"><label>Placa</label><input id="eqPl" placeholder="ABC-123"></div>
+      <div class="fg"><label>Horómetro Inicial</label><input id="eqHr" type="number" value="0"></div>
+      <div class="fg"><label>Estado</label><select id="eqEst"><option>Operativo</option><option>En Mantenimiento</option><option>Parado</option><option>Inoperativo</option></select></div>
+      <div class="fg"><label>Costo/Hora S/</label><input id="eqCh" type="number" placeholder="120"></div>
+    </div>
+    <div id="eqP1" class="fg-grid" style="display:none">
+      <div class="eq-sec">Datos Técnicos</div>
+      <div class="fg"><label>N° de Serie</label><input id="eqNs" placeholder="SN-XXXXXX"></div>
+      <div class="fg"><label>Potencia HP</label><input id="eqPhp" type="number" placeholder="0"></div>
+      <div class="fg"><label>Capacidad M³</label><input id="eqCm3" type="number" placeholder="0"></div>
+      <div class="fg"><label>Peso KG</label><input id="eqPkg" type="number" placeholder="0"></div>
+      <div class="fg"><label>Dimensiones (LxAxH)</label><input id="eqDim" placeholder="5.2x2.5x3.1 m"></div>
+      <div class="fg"><label>Ubicación</label><input id="eqUbi" placeholder="Frente / Cantera"></div>
+      <div class="fg"><label>Fecha de Llegada</label><input id="eqFll" type="date"></div>
+      <div class="fg"><label>Fecha de Salida</label><input id="eqFls" type="date"></div>
+      <div class="fg"><label>Status</label><select id="eqSts"><option value="">— Seleccionar —</option><option>Activo</option><option>Inactivo</option><option>En Tránsito</option><option>Alquilado</option></select></div>
+      <div class="fg"><label>SOAT</label><input id="eqSoat" placeholder="N° / Vencimiento"></div>
+      <div class="fg"><label>Póliza TREC</label><input id="eqPtr" placeholder="N° / Vencimiento"></div>
+      <div class="fg"><label>Revisión Técnica</label><input id="eqRtec" placeholder="N° / Vencimiento"></div>
+      <div class="fg"><label>GPS</label><input id="eqGps" placeholder="Proveedor / ID"></div>
+    </div>
+    <div id="eqP2" class="fg-grid" style="display:none">
+      <div class="eq-sec">Proveedor / Contrato</div>
+      <div class="fg"><label>Proveedor</label><input id="eqProv"></div>
+      <div class="fg"><label>Contacto</label><input id="eqCtc"></div>
+      <div class="fg"><label>Celular</label><input id="eqCel"></div>
+      <div class="fg"><label>Correo</label><input id="eqCor" type="email"></div>
+      <div class="fg"><label>Horas Mínimas</label><input id="eqHmin" type="number" placeholder="0"></div>
+      <div class="fg"><label>Tarifa S/.</label><input id="eqTar" type="number" placeholder="0"></div>
+      <div class="fg"><label>Inicio Contrato</label><input id="eqIco" type="date"></div>
+      <div class="fg"><label>Término Contrato</label><input id="eqTco" type="date"></div>
+    </div>
+    <div id="eqP3" class="fg-grid" style="display:none">
+      <div class="eq-sec">Centro de Costos – Mantenimiento</div>
+      <div class="fg"><label>C.C. GET'S S/</label><input id="eqCcg" type="number" placeholder="0"></div>
+      <div class="fg"><label>C.C. Engrase S/</label><input id="eqCce" type="number" placeholder="0"></div>
+      <div class="fg"><label>C.C. Relleno Niveles S/</label><input id="eqCcrn" type="number" placeholder="0"></div>
+      <div class="fg"><label>C.C. Mant. Preventivo S/</label><input id="eqCcmp" type="number" placeholder="0"></div>
+      <div class="fg"><label>C.C. Mant. Correctivo S/</label><input id="eqCcmc" type="number" placeholder="0"></div>
+    </div>
+  </div>
+  <div class="mf">
+    <button class="btn btn-out" onclick="closeM('mEquipo')">Cancelar</button>
+    <button id="eqBPrev" class="btn btn-out" style="display:none" onclick="eqGoTab(_eqTab-1)">◀ Anterior</button>
+    <button id="eqBNext" class="btn btn-out" onclick="eqGoTab(_eqTab+1)">Siguiente ▶</button>
+    <button id="eqBSave" class="btn btn-a" style="--ba:var(--mec);display:none" onclick="gEquipo()">Guardar Equipo</button>
+  </div>
 </div></div>
 
 <!-- Mantenimiento Modal -->
@@ -4382,11 +4405,26 @@ function rMaster(){
     <td><button class="btn btn-del btn-sm" onclick="del('equipos',${e.id})">🗑</button></td>
   </tr>`).join('');
 }
+let _eqTab=0;
+function openEquipo(){_eqTab=0;eqGoTab(0);openM('mEquipo');}
+function eqGoTab(n){
+  _eqTab=n;
+  [0,1,2,3].forEach(i=>{
+    const p=document.getElementById('eqP'+i),t=document.getElementById('eqTab'+i);
+    if(p)p.style.display=i===n?'grid':'none';
+    if(t)t.classList.toggle('eq-tab-act',i===n);
+  });
+  const prev=document.getElementById('eqBPrev'),next=document.getElementById('eqBNext'),save=document.getElementById('eqBSave');
+  if(prev)prev.style.display=n>0?'':'none';
+  if(next)next.style.display=n<3?'':'none';
+  if(save)save.style.display=n===3?'':'none';
+}
 function gEquipo(){
-  const cod=document.getElementById('eqCod').value.trim(),nom=document.getElementById('eqNom').value.trim();
-  if(!cod||!nom){toast('Ingrese código y nombre',true);return;}
+  const cod=document.getElementById('eqCod').value.trim();
+  if(!cod){toast('Ingrese el código del equipo',true);eqGoTab(0);return;}
   const eq={
-    id:nid('eq'),codigo:cod,nombre:nom,
+    id:nid('eq'),codigo:cod,
+    nombre:(document.getElementById('eqSub').value+' '+document.getElementById('eqMa').value+' '+document.getElementById('eqMo').value).trim(),
     tipo:document.getElementById('eqTi').value,
     sub:document.getElementById('eqSub').value,
     marca:document.getElementById('eqMa').value,
