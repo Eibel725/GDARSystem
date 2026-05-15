@@ -4361,7 +4361,9 @@ function editFPago(id){
   _fpEditId=id;
   refreshSelects();
   const _fpProy=(()=>{if(!f.reqId)return'';const rq=DB.requerimientos.find(r=>r.id==f.reqId);return rq?rq.proyecto||'':''})();
-  _initFpProyFilter(_fpProy);filtrarFpReq(_fpProy);
+  _initFpProyFilter(_fpProy);
+  // Cargar TODOS los requerimientos sin filtrar para garantizar que el req guardado esté disponible
+  filtrarFpReq('');
   document.getElementById('fpTipo').value=f.tipo;
   document.getElementById('fpNum').value=f.num;
   document.getElementById('fpFecha').value=toDMY(f.fecha);
@@ -4386,15 +4388,7 @@ function editFPago(id){
   else if(f.pdfName){_ppEl.textContent='📎 '+f.pdfName+' (existente)';}
   else{_ppEl.textContent='';}
   const fpReqEl=document.getElementById('fpReq');
-  if(fpReqEl&&f.reqId){
-    fpReqEl.value=f.reqId;
-    if(!fpReqEl.value){
-      // El requerimiento no está en la lista filtrada (desajuste de proyecto) — cargar todos y reintentar
-      filtrarFpReq('');
-      document.getElementById('fpProyFilter').value='';
-      fpReqEl.value=f.reqId;
-    }
-  }
+  if(fpReqEl&&f.reqId)fpReqEl.value=f.reqId;
   const ttl=document.querySelector('#mFPago .mttl');
   if(ttl)ttl.textContent='✏️ Editar Comprobante: '+f.num;
   openM('mFPago');
