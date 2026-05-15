@@ -491,7 +491,14 @@ select option{background:var(--panel2);}
     <div class="card-head" style="flex-direction:column;align-items:stretch;gap:.5rem;padding-bottom:.6rem">
       <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
         <span class="card-title">Movimientos de Almacén</span>
+        <span id="almPeriodoLbl" style="font-size:.7rem;color:var(--muted2);background:var(--panel2);border:1px solid var(--border);border-radius:4px;padding:.15rem .5rem"></span>
         <div style="flex:1"></div>
+        <select id="almPeriodoSel" class="sel" style="flex:0 0 auto;width:150px;font-size:.74rem" onchange="cargarAlmacen()">
+          <option value="60">Últimos 60 días</option>
+          <option value="120">Últimos 4 meses</option>
+          <option value="365">Este año</option>
+          <option value="0">Todo el historial</option>
+        </select>
         <button class="btn btn-green" style="font-size:.77rem;padding:.35rem .85rem" onclick="openAlmEM()">⬆ Entrada Múltiple</button>
         <button class="btn btn-del btn-sm" style="padding:.35rem .85rem;font-size:.77rem;background:rgba(239,68,68,.18);border-color:#ef4444" onclick="openAlmSM()">⬇ Salida Múltiple</button>
         <button class="btn btn-out btn-sm" style="padding:.35rem .85rem;font-size:.77rem;border-color:#3b82f6;color:#3b82f6" onclick="openPrintVale()">🖨 Imprimir Vale</button>
@@ -1991,7 +1998,7 @@ async function refreshData(){
 // ══ CARGA INICIAL DESDE SUPABASE ══
 async function loadSheetsData(){
   try{
-    const simpleKeys=Object.keys(SUPA_TABLES).filter(k=>k!=='requerimientos'&&k!=='catalogoItems'&&k!=='asistencia');
+    const simpleKeys=Object.keys(SUPA_TABLES).filter(k=>k!=='requerimientos'&&k!=='catalogoItems'&&k!=='asistencia'&&k!=='almacen');
     const results=await Promise.all(
       simpleKeys.map(dbKey=>
         supa.from(SUPA_TABLES[dbKey]).select('*')
@@ -2042,8 +2049,42 @@ async function loadSheetsData(){
       DB.nx.req=Math.max(...DB.requerimientos.map(r=>+r.id||0))+1;
       loaded=true;
     }
+    // Carga inicial almacén: últimos 60 días
+    await cargarAlmacen(false);
     if(loaded){renderPage(AP);recalcularEstadosRQ();toast('✓ Datos cargados');}
   }catch(e){console.warn('Supabase load error:',e);}
+}
+async function cargarAlmacen(rerender=true){
+  const sel=document.getElementById('almPeriodoSel');
+  const dias=sel?+sel.value:60;
+  const lbl=document.getElementById('almPeriodoLbl');
+  if(lbl)lbl.textContent='⏳ Cargando...';
+  try{
+    let q=supa.from('almacen').select('*').order('fecha',{ascending:false}).order('id',{ascending:false});
+    if(dias>0){
+      const desde=new Date();desde.setDate(desde.getDate()-dias);
+      const desdeStr=desde.toISOString().slice(0,10);
+      q=q.gte('fecha',desdeStr);
+    }
+    // paginación para traer todos los registros del período
+    let all=[],from=0,done=false;
+    while(!done){
+      const{data,error}=await q.range(from,from+999);
+      if(error||!data||data.length===0){done=true;break;}
+      all=all.concat(data);
+      if(data.length<1000)done=true;else from+=1000;
+    }
+    DB.almacen=all.map(toCamel);
+    DB.nx.alm=DB.almacen.length?Math.max(...DB.almacen.map(r=>+r.id||0))+1:1;
+    if(lbl){
+      const txt=dias===0?'Todo el historial':`Últimos ${dias} días · ${DB.almacen.length} registros`;
+      lbl.textContent=txt;
+    }
+    if(rerender)rAlm();
+  }catch(e){
+    console.warn('Error cargando almacén:',e);
+    if(lbl)lbl.textContent='⚠ Error al cargar';
+  }
 }
 // ══ SEED DEMO DATA TO SUPABASE (ejecutar una sola vez desde consola) ══
 async function seedSupabase(){
