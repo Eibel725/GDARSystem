@@ -1346,7 +1346,7 @@ select option{background:var(--panel2);}
     <div class="fg"><label>Tipo</label><select id="fpTipo"><option>Factura</option><option>Boleta de Venta</option><option>Nota de Débito</option><option>Nota de Crédito</option></select></div>
     <div class="fg"><label>N° Comprobante</label><input id="fpNum" placeholder="F001-00001 / B001-00001"></div>
     <div class="fg"><label>Fecha (dd/mm/yyyy)</label><input id="fpFecha" type="text" placeholder="dd/mm/yyyy" maxlength="10" oninput="let v=this.value.replace(/\D/g,'');if(v.length>=3)v=v.slice(0,2)+'/'+v.slice(2);if(v.length>=6)v=v.slice(0,5)+'/'+v.slice(5,9);this.value=v"></div>
-    <div class="fg"><label>Proveedor / Razón Social</label><input id="fpProv" placeholder="Razón Social o nombre"></div>
+    <div class="fg"><label>Proveedor / Razón Social</label><input id="fpProv" list="fpProvDatalist" autocomplete="off" placeholder="Razón Social o nombre"></div>
     <div class="fg"><label>RUC / DNI</label><input id="fpRuc" placeholder="20XXXXXXXXX"></div>
     <div class="fg"><label>Moneda</label>
       <select id="fpMoneda" onchange="document.getElementById('fpMonedaOtroDiv').style.display=this.value==='Otro'?'flex':'none';actualizarLabelMoneda(this.value,'')">
@@ -1596,6 +1596,7 @@ select option{background:var(--panel2);}
         <input id="matUnd" list="undDatalist" autocomplete="off" placeholder="und" style="flex:1;padding:.45rem;background:var(--panel2);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:.82rem">
         <datalist id="undDatalist"></datalist>
         <datalist id="provDatalist"></datalist>
+        <datalist id="fpProvDatalist"></datalist>
         <button type="button" class="btn btn-sm" onclick="openGesUnidades()" title="Gestionar unidades" style="padding:.45rem .7rem;background:var(--panel2);border:1px solid var(--border);color:var(--muted2)">⚙️</button>
       </div>
     </div>
@@ -4318,9 +4319,15 @@ function filtrarFpReq(proyNombre){
   sel.innerHTML='<option value="">— Sin Requerimiento —</option>'
     +reqs.map(r=>`<option value="${r.id}">[${r.est}] ${r.num} – ${r.solicitante}</option>`).join('');
 }
+function refreshFPagoProvDatalist(){
+  const dl=document.getElementById('fpProvDatalist');if(!dl)return;
+  const provs=[...new Set(DB.facturasPago.map(r=>r.prov).filter(v=>v&&v.trim()))].sort();
+  dl.innerHTML=provs.map(p=>`<option value="${p}">`).join('');
+}
 function newFPago(){
   _fpEditId=null;
   refreshSelects();
+  refreshFPagoProvDatalist();
   _initFpProyFilter('');filtrarFpReq('');
   ['fpNum','fpProv','fpRuc','fpObs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   ['fpMonto','fpIgv','fpTotal'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
