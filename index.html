@@ -2975,7 +2975,6 @@ function addEMItem(){emItemsArr.push({cod:'',nom:'',und:'und',requerido:null,yaI
 function removeEMItem(i){emItemsArr.splice(i,1);renderEMItems();}
 function renderEMItems(){
   const b=document.getElementById('emItemsBody');if(!b)return;
-  const catOpts=DB.catalogoItems.map(c=>`<option value="${c.cod}">[${c.cod}] ${c.desc}</option>`).join('');
   b.innerHTML=emItemsArr.map((it,i)=>{
     const maxCant=it.esRq?Math.max(0,it.requerido-it.yaIngresado):99999;
     const yaColor=it.yaIngresado>0?'#f59e0b':'#64748b';
@@ -3000,11 +2999,14 @@ function renderEMItems(){
       return`<tr>
         <td style="padding:.3rem .4rem;color:var(--muted2);font-size:.7rem;text-align:center">${i+1}</td>
         <td colspan="2" style="padding:.3rem .4rem">
-          <select onchange="emItemsArr[${i}].cod=this.options[this.selectedIndex].value;emItemsArr[${i}].nom=this.options[this.selectedIndex].text.replace(/^\[.*?\] /,'');renderEMItems()" style="${ISS};width:100%;min-width:280px">
-            <option value="">— Seleccionar material —</option>${catOpts.replace(`value="${it.cod}"`,`value="${it.cod}" selected`)}
-          </select>
+          <input id="emAcInp${i}" type="text" autocomplete="off"
+            value="${it.cod?it.cod+' – '+it.nom:''}"
+            placeholder="Buscar por nombre o código..."
+            oninput="showEmAc(${i},this.value)"
+            onblur="setTimeout(()=>hideEmAc(),200)"
+            style="${ISS};min-width:280px">
         </td>
-        <td style="padding:.3rem .4rem"><input list="undDatalist" value="${it.und}" oninput="emItemsArr[${i}].und=this.value" style="${ISS};width:60px"></td>
+        <td style="padding:.3rem .4rem"><input id="emAcUnd${i}" list="undDatalist" value="${it.und}" oninput="emItemsArr[${i}].und=this.value" style="${ISS};width:60px"></td>
         <td style="padding:.3rem .4rem;text-align:right;color:#64748b;font-size:.75rem">—</td>
         <td style="padding:.3rem .4rem;text-align:right;color:#64748b;font-size:.75rem">—</td>
         <td style="padding:.3rem .4rem">
@@ -3783,6 +3785,39 @@ function selectAlmAc(cod,desc,und){
   hideAlmAc();
 }
 function hideAlmAc(){document.getElementById('almAcDrop').style.display='none';}
+
+// ── AUTOCOMPLETE ENTRADA MÚLTIPLE ──
+let _emAcIdx=-1;
+function showEmAc(idx,val){
+  _emAcIdx=idx;
+  const drop=document.getElementById('emAcDrop');
+  if(!val||val.length<1){drop.style.display='none';return;}
+  const v=val.toLowerCase();
+  const matches=DB.catalogoItems.filter(c=>c.desc.toLowerCase().includes(v)||c.cod.toLowerCase().includes(v)).slice(0,14);
+  if(!matches.length){drop.style.display='none';return;}
+  const inp=document.getElementById('emAcInp'+idx);
+  if(!inp)return;
+  const r=inp.getBoundingClientRect();
+  drop.style.cssText=`position:fixed;left:${r.left}px;top:${r.bottom+2}px;width:${Math.max(r.width,340)}px;z-index:9999;display:block;background:#1e2740;border:1px solid #2e3d60;border-radius:7px;box-shadow:0 8px 28px rgba(0,0,0,.75);max-height:240px;overflow-y:auto`;
+  drop.innerHTML=matches.map(c=>`
+    <div onmousedown="selectEmAc(${idx},'${c.cod}','${c.desc.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','${c.und}')"
+      style="padding:.42rem .75rem;cursor:pointer;font-size:.76rem;border-bottom:1px solid #2a3556;display:flex;align-items:center;gap:.6rem;background:transparent"
+      onmouseover="this.style.background='#2a3a5e'" onmouseout="this.style.background='transparent'">
+      ${c.img?`<img src="${c.img}" style="width:32px;height:32px;object-fit:cover;border-radius:4px;border:1px solid #2e3d60;flex-shrink:0">`
+      :`<div style="width:32px;height:32px;background:#161e30;border-radius:4px;border:1px solid #2e3d60;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.55rem;color:#64748b">—</div>`}
+      <span style="font-family:'Roboto Mono',monospace;font-size:.68rem;color:var(--alm);min-width:68px;flex-shrink:0">${c.cod}</span>
+      <span style="flex:1;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.desc}</span>
+      <span style="color:#94a3b8;font-size:.68rem;background:#161e30;padding:1px 6px;border-radius:3px;flex-shrink:0">${c.und}</span>
+      ${c.pur?`<span style="color:#10b981;font-size:.67rem;font-family:'Roboto Mono',monospace;flex-shrink:0">S/${Number(c.pur).toFixed(2)}</span>`:''}
+    </div>`).join('');
+}
+function selectEmAc(idx,cod,desc,und){
+  emItemsArr[idx].cod=cod;emItemsArr[idx].nom=desc;emItemsArr[idx].und=und;
+  const inp=document.getElementById('emAcInp'+idx);if(inp)inp.value=cod+' – '+desc;
+  const undInp=document.getElementById('emAcUnd'+idx);if(undInp)undInp.value=und;
+  hideEmAc();
+}
+function hideEmAc(){const d=document.getElementById('emAcDrop');if(d)d.style.display='none';}
 function openMReq(){_reqEditId=null;reqItemsArr=[];addReqItem();document.getElementById('rqProy').value='';document.getElementById('rqCodProy').value='';document.getElementById('rqProyNumHint').textContent='';document.querySelector('#mReq .mttl').textContent='📝 Nuevo Requerimiento de Materiales';document.querySelector('#mReq .mf .btn-a').textContent='Registrar Requerimiento';openM('mReq');}
 function intentarEditarReq(id){
   const r=DB.requerimientos.find(x=>x.id===id);if(!r)return;
@@ -5169,5 +5204,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 <!-- Autocomplete Almacén Entrada -->
 <div id="almAcDrop" style="display:none;background:var(--panel);border:1px solid var(--border);border-radius:7px;max-height:240px;overflow-y:auto;box-shadow:0 8px 24px #00000070;"></div>
+<!-- Autocomplete Entrada Múltiple -->
+<div id="emAcDrop" style="display:none;background:var(--panel);border:1px solid var(--border);border-radius:7px;max-height:240px;overflow-y:auto;box-shadow:0 8px 24px #00000070;"></div>
 </body>
 </html>
