@@ -4386,7 +4386,15 @@ function editFPago(id){
   else if(f.pdfName){_ppEl.textContent='📎 '+f.pdfName+' (existente)';}
   else{_ppEl.textContent='';}
   const fpReqEl=document.getElementById('fpReq');
-  if(fpReqEl&&f.reqId)fpReqEl.value=f.reqId;
+  if(fpReqEl&&f.reqId){
+    fpReqEl.value=f.reqId;
+    if(!fpReqEl.value){
+      // El requerimiento no está en la lista filtrada (desajuste de proyecto) — cargar todos y reintentar
+      filtrarFpReq('');
+      document.getElementById('fpProyFilter').value='';
+      fpReqEl.value=f.reqId;
+    }
+  }
   const ttl=document.querySelector('#mFPago .mttl');
   if(ttl)ttl.textContent='✏️ Editar Comprobante: '+f.num;
   openM('mFPago');
