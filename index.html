@@ -1139,7 +1139,7 @@ select option{background:var(--panel2);}
     <div class="fg"><label>Unidad</label><input id="aeUnd" list="undDatalist" autocomplete="off" placeholder="und / gal / par..."
       style="width:100%;padding:.46rem .7rem;background:var(--panel2);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:.85rem"></div>
     <div class="fg"><label>Cantidad</label><input id="aeCant" type="number" placeholder="0"></div>
-    <div class="fg"><label>Proveedor</label><input id="aeProv" placeholder="Ferreyros / Distribuidora..."></div>
+    <div class="fg"><label>Proveedor</label><input id="aeProv" list="provDatalist" autocomplete="off" placeholder="Ferreyros / Distribuidora..."></div>
     <div class="fg"><label>Tipo de Costo</label><select id="aeTc"><option>Costo Directo</option><option>Costo Indirecto</option><option>Reembolsable</option><option>Costo de Terceros</option></select></div>
     <div class="fg"><label>Receptor</label><select id="aePers"></select></div>
     <div class="fg" style="grid-column:1/-1"><label>Observaciones</label><input id="aeObs" placeholder="Notas sobre la entrada, guía de remisión, lote..."></div>
@@ -1172,7 +1172,7 @@ select option{background:var(--panel2);}
       <div class="fg" style="grid-column:1/span 3"><label>Nombre de Proyecto</label><select id="emProyecto" onchange="_emFilterRq()"><option value="">— Sin Proyecto —</option></select></div>
       <div class="fg"><label>Relacionado con RQ</label><select id="emRqRef" onchange="_emOnRqChange()"><option value="">— Sin Requerimiento —</option></select></div>
       <div class="fg"><label>Fecha</label><input id="emF" type="date"></div>
-      <div class="fg"><label>Proveedor</label><input id="emProv" placeholder="Ferreyros / Distribuidora..."></div>
+      <div class="fg"><label>Proveedor</label><input id="emProv" list="provDatalist" autocomplete="off" placeholder="Ferreyros / Distribuidora..."></div>
       <div class="fg"><label>Tipo de Costo</label><select id="emTc"><option>Costo Directo</option><option>Costo Indirecto</option><option>Reembolsable</option><option>Costo de Terceros</option></select></div>
       <div class="fg"><label>Receptor</label><select id="emPers"></select></div>
       <div class="fg" style="grid-column:1/-1"><label>Observaciones</label><input id="emObs" placeholder="Notas sobre la entrada, guía de remisión, lote..."></div>
@@ -1588,6 +1588,7 @@ select option{background:var(--panel2);}
       <div style="display:flex;gap:.35rem;align-items:center">
         <input id="matUnd" list="undDatalist" autocomplete="off" placeholder="und" style="flex:1;padding:.45rem;background:var(--panel2);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:.82rem">
         <datalist id="undDatalist"></datalist>
+        <datalist id="provDatalist"></datalist>
         <button type="button" class="btn btn-sm" onclick="openGesUnidades()" title="Gestionar unidades" style="padding:.45rem .7rem;background:var(--panel2);border:1px solid var(--border);color:var(--muted2)">⚙️</button>
       </div>
     </div>
@@ -2872,6 +2873,7 @@ function openAlmE(){
     ps.value='';
   }
   _aeFilterRq();
+  refreshProvDatalist();
   openM('mAlmE');
 }
 function openAlmS(){
@@ -2894,6 +2896,7 @@ function openAlmEM(){
   document.getElementById('emRqRef').innerHTML='<option value="">— Sin Requerimiento —</option>';
   document.getElementById('emF').value=today();
   document.getElementById('emProv').value='';
+  refreshProvDatalist();
   document.getElementById('emObs').value='';
   document.getElementById('emItemsBody').innerHTML='';
   openM('mAlmEM');
@@ -4920,6 +4923,12 @@ function gTramo(){
 }
 
 // ══ UNIDADES DE MEDIDA ══
+function refreshProvDatalist(){
+  const dl=document.getElementById('provDatalist');
+  if(!dl)return;
+  const provs=[...new Set(DB.almacen.map(r=>r.proveedor).filter(v=>v&&v.trim()))].sort();
+  dl.innerHTML=provs.map(p=>`<option value="${p}">`).join('');
+}
 function refreshUndDatalist(){
   const dl=document.getElementById('undDatalist');
   if(dl)dl.innerHTML=DB.unidades.map(u=>`<option value="${u.abrev}">${u.nombre} (${u.abrev})</option>`).join('');
