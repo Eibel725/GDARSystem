@@ -623,7 +623,7 @@ select option{background:var(--panel2);}
       </div>
     </div>
     <div class="card-body"><div class="tbl-wrap"><table>
-      <thead><tr><th>N° Comp.</th><th>Tipo</th><th>Fecha</th><th>Proveedor</th><th>Requerimiento</th><th>Moneda</th><th class="tr">Total</th><th>Estado</th><th>PDF</th><th></th></tr></thead>
+      <thead><tr><th>N° Comp.</th><th>Tipo</th><th>Fecha</th><th>Proveedor</th><th>Requerimiento</th><th>Moneda</th><th class="tr">Total</th><th>Estado</th><th>Tipo Cobro</th><th>EDP</th><th>PDF</th><th></th></tr></thead>
       <tbody id="tbFPago"></tbody>
     </table></div></div>
   </div>
@@ -1364,6 +1364,8 @@ select option{background:var(--panel2);}
     </div>
     <div class="fg" style="grid-column:1/-1"><label>Requerimiento Relacionado</label><select id="fpReq"><option value="">— Sin Requerimiento —</option></select></div>
     <div class="fg"><label>Estado</label><select id="fpEst"><option>Recibido</option><option>Verificado</option><option>Pagado</option><option>Observado</option><option>Anulado</option></select></div>
+    <div class="fg"><label>Tipo Cobro</label><select id="fpTipoCobro"><option value="">— Sin clasificar —</option><option>Reembolsable</option><option>Costo Indirecto</option><option>Costo Directo</option><option>Otros</option></select></div>
+    <div class="fg"><label>EDP</label><input id="fpEdp" placeholder="EDP N° 01"></div>
     <div class="fg" style="grid-column:1/-1"><label>Archivo PDF (Comprobante)</label>
       <input type="file" id="fpPdf" accept=".pdf,image/*" style="background:var(--panel2);border:1px solid var(--border);border-radius:5px;padding:.46rem .7rem;color:var(--text);font-size:.8rem;width:100%;cursor:pointer">
       <div id="fpPdfPreview" style="margin-top:.3rem;font-size:.72rem;color:var(--muted2)"></div>
@@ -4290,6 +4292,8 @@ function rFPago(){
       <td style="font-size:.75rem;color:var(--alm);font-weight:600;font-family:'Roboto Mono',monospace">${f.moneda||'Soles (S/)'}</td>
       <td class="tr mono" style="color:#10b981">${fmt(f.total)}</td>
       <td>${bge(f.est)}</td>
+      <td style="font-size:.73rem;color:var(--alm)">${f.tipoCobro||'<span style="color:var(--muted)">—</span>'}</td>
+      <td style="font-size:.73rem;color:var(--muted2)">${f.edp||'<span style="color:var(--muted)">—</span>'}</td>
       <td>${pdfLink}</td>
       <td style="display:flex;gap:.3rem">
         <button class="btn btn-out btn-sm" title="Editar" onclick="editFPago(${f.id})" style="color:#f59e0b;border-color:#f59e0b40">✏️</button>
@@ -4336,7 +4340,8 @@ function newFPago(){
   refreshSelects();
   refreshFPagoProvDatalist();
   _initFpProyFilter('');filtrarFpReq('');
-  ['fpNum','fpProv','fpRuc','fpObs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['fpNum','fpProv','fpRuc','fpObs','fpEdp'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('fpTipoCobro').value='';
   ['fpMonto','fpIgv','fpTotal'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('fpTipo').value='Factura';
   document.getElementById('fpFecha').value=todayDMY();
@@ -4374,6 +4379,8 @@ function editFPago(id){
   document.getElementById('fpMonedaOtroDiv').style.display=_monEsStd?'none':'flex';
   actualizarLabelMoneda(_monEsStd?_mon:'Otro',_monEsStd?'':_mon);
   document.getElementById('fpObs').value=f.obs||'';
+  document.getElementById('fpTipoCobro').value=f.tipoCobro||'';
+  document.getElementById('fpEdp').value=f.edp||'';
   const _ppEl=document.getElementById('fpPdfPreview');
   if(f.pdfUrl){_ppEl.innerHTML=`📎 <a href="${f.pdfUrl}" target="_blank" rel="noopener" style="color:var(--alm)">${f.pdfName||'Ver archivo'}</a> <span style="color:var(--muted2)">(existente — selecciona nuevo para reemplazar)</span>`;}
   else if(f.pdfName){_ppEl.textContent='📎 '+f.pdfName+' (existente)';}
@@ -4426,6 +4433,8 @@ async function gFPago(){
     moneda:_moneda,
     reqId:reqIdRaw?+reqIdRaw:null,
     est:document.getElementById('fpEst').value,
+    tipoCobro:document.getElementById('fpTipoCobro').value||null,
+    edp:document.getElementById('fpEdp').value.trim()||null,
     obs:document.getElementById('fpObs').value,
   };
   if(_fpEditId!==null){
