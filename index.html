@@ -514,7 +514,7 @@ select option{background:var(--panel2);}
       </div>
     </div>
     <div class="card-body"><div class="tbl-wrap"><table>
-      <thead><tr><th>Fecha</th><th>Proyecto</th><th>RQ / VAL</th><th>Código</th><th>Material / EPP / Insumo</th><th>Unidad</th><th>Mov.</th><th class="tr">Cant.</th><th class="tr">Stock</th><th>Tipo Costo</th><th>Para Persona / Equipo</th><th></th></tr></thead>
+      <thead><tr><th>Fecha</th><th>Proyecto</th><th>RQ / VAL</th><th>Código</th><th>Material / EPP / Insumo</th><th>Unidad</th><th>Mov.</th><th class="tr">Cant.</th><th class="tr">Stock</th><th>Tipo Costo</th><th>Para Persona / Equipo</th><th>Proveedor</th><th></th></tr></thead>
       <tbody id="tbAlm"></tbody>
     </table></div>
     <div id="almPagNav" style="display:flex;align-items:center;justify-content:space-between;padding:.45rem .75rem;border-top:1px solid var(--border);font-size:.78rem;color:var(--muted2)"></div>
@@ -3278,6 +3278,7 @@ function rAlm(){
       <td class="tr mono">${fmtN(r.cant)}</td>
       <td class="tr mono" style="font-weight:600;color:${saldo<=0?'#ef4444':'#10b981'}">${fmtN(saldo)}</td>
       <td>${bge(r.tipoCosto)}</td><td>${r.para||'—'}</td>
+      <td style="font-size:.75rem;color:var(--muted2)">${r.proveedor||'—'}</td>
       <td style="white-space:nowrap">
         <button class="btn btn-out btn-sm" onclick="editAlm(${r.id})" title="Editar">✏️</button>
         <button class="btn btn-del btn-sm" onclick="del('almacen',${r.id})">🗑</button>
@@ -3704,7 +3705,7 @@ function selectReqSug(i,tipo,cod,desc,und){
 }
 function hideReqAc(){document.getElementById('reqAcDrop').style.display='none';}
 
-// ── Autocomplete Almacén Entrada ──
+// ── AUTOCOMPLETE ALMACÉN ENTRADA ──
 function showAlmAc(field,val){
   const drop=document.getElementById('almAcDrop');
   if(!val||val.length<1){drop.style.display='none';return;}
@@ -4186,7 +4187,7 @@ function rFPago(){
     });
   }
 
-  // KPIs del subconjunto filtrado
+  // KPIs DEL SUBCONJUNTO FILTRADO
   const tot=lista.reduce((a,c)=>a+c.total,0);
   const pag=lista.filter(f=>f.est==='Pagado').length;
   document.getElementById('fpagoKpis').innerHTML=[
@@ -4623,7 +4624,7 @@ function openReporte(tipo){
   switchTab(1);
   openM('mReporte');
 }
-//Reporte de trabajo.
+//REPORTE DE TRABAJO
 async function gReporte(){
   const eqId  = +document.getElementById('rpCodigo').value;
   const fecha = document.getElementById('rpFecha').value;
@@ -4631,7 +4632,7 @@ async function gReporte(){
 
   const eq = DB.equipos.find(e=>e.id===eqId);
 
-  // Viajes
+  // VIAJES
   const viajes=[];
   for(let i=1;i<=viajeCount;i++){
     viajes.push({
@@ -4725,7 +4726,7 @@ function rPanelHoras(){
   const totEf=Object.values(totHs).reduce((a,t)=>a+t.ef,0);
   document.getElementById('panelKpis').innerHTML=[{l:'Hs Totales Efectivas',v:fmtN(totEf)+'h',c:'var(--ceq)'},{l:'Equipos con Partes',v:Object.keys(totHs).length,c:'#10b981'},{l:'Total Combustible',v:DB.partes.reduce((a,p)=>a+p.comb,0)+' gal',c:'#f97316'}].map(k=>`<div class="kpi" style="--kc:${k.c}"><div class="kpi-lbl">${k.l}</div><div class="kpi-val">${k.v}</div></div>`).join('');
 
-  // Panel LA
+  // PANEL LA
   const laEqs=DB.equipos.filter(e=>e.tipo==='Línea Amarilla');
   document.getElementById('panelLA').innerHTML=laEqs.map(e=>{
     const t=totHs[e.id]||{ef:0,im:0,comb:0};
@@ -4745,7 +4746,7 @@ function rPanelHoras(){
     </div>`;
   }).join('')||'<div class="text-muted" style="padding:1rem">No hay equipos de línea amarilla registrados.</div>';
 
-  // Panel LB (volquetes)
+  // PANEL LB (VOLQUETES)
   const lbEqs=DB.equipos.filter(e=>e.tipo==='Línea Blanca');
   document.getElementById('panelLB').innerHTML=lbEqs.map(e=>{
     const t=totHs[e.id]||{ef:0,im:0,comb:0};
@@ -5082,6 +5083,7 @@ function gMaterial(){
 
 function del(t,id){
   if(!confirm('¿Eliminar este registro?'))return;
+  
   // Capturar datos relacionados antes de eliminar
   const _prevRec=DB[t]?DB[t].find(r=>r.id===id):null;
   const _prevRqRef=_prevRec&&_prevRec.rqRef?_prevRec.rqRef:null;
