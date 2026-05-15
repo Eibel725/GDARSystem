@@ -3252,7 +3252,7 @@ function rAlm(){
   if(_almFiltProy)filasMostrar=filasMostrar.filter(r=>(r.codProy||'').trim()===_almFiltProy);
   if(_almFiltMat)filasMostrar=filasMostrar.filter(r=>r.codigo&&r.codigo.toUpperCase().startsWith(_almFiltMat.toUpperCase()+'-'));
   if(_almFiltFecha)filasMostrar=filasMostrar.filter(r=>r.fecha===_almFiltFecha);
-  if(_almFiltText)filasMostrar=filasMostrar.filter(r=>[r.codigo,r.nombre,r.proyecto,r.rqRef,r.numVale,r.para,r.tipoCosto].some(v=>String(v||'').toLowerCase().includes(_almFiltText)));
+  if(_almFiltText)filasMostrar=filasMostrar.filter(r=>[r.codigo,r.nombre,r.proyecto,r.rqRef,r.numVale,r.para,r.tipoCosto,r.proveedor].some(v=>String(v||'').toLowerCase().includes(_almFiltText)));
   // Paginación
   const _almTotal=filasMostrar.length;
   const _almTotalPags=Math.max(1,Math.ceil(_almTotal/ALM_PAGE_SIZE));
