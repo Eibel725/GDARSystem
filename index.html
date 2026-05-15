@@ -4328,7 +4328,8 @@ function _fpProvAutoFill(){
   const val=(document.getElementById('fpProv').value||'').trim();
   if(!val)return;
   const match=DB.facturasPago.find(r=>(r.prov||'').trim()===val&&r.ruc);
-  if(match){const el=document.getElementById('fpRuc');if(el&&!el.value)el.value=match.ruc;}
+  const el=document.getElementById('fpRuc');
+  if(el){el.value=match?match.ruc:'';}
 }
 function newFPago(){
   _fpEditId=null;
