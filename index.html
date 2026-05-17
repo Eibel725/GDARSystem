@@ -713,7 +713,7 @@ select option{background:var(--panel2);}
       </div>
     </div>
     <div class="card-body"><div class="tbl-wrap"><table>
-      <thead><tr><th>Código</th><th>Equipo</th><th>Tipo</th><th>Marca</th><th>Modelo</th><th>Año</th><th>N° Serie</th><th>Placa</th><th>HP</th><th>M³</th><th>Peso KG</th><th>Dimensiones</th><th>Horómetro</th><th>Estado</th><th>Ubicación</th><th>F. Llegada</th><th>F. Salida</th><th>Status</th><th>SOAT</th><th>P. TREC</th><th>Rev. Técnica</th><th>GPS</th><th>Proveedor</th><th>Contacto</th><th>Celular</th><th>Correo</th><th>H. Mín.</th><th>Tarifa S/</th><th>Inicio Contrato</th><th>Término Contrato</th><th>CC GET'S</th><th>CC Engrase</th><th>CC R.Niv.</th><th>CC M.Prev.</th><th>CC M.Corr.</th><th>Proyecto</th><th></th></tr></thead>
+      <thead><tr><th>Código</th><th>Equipo</th><th>Tipo</th><th>Marca</th><th>Modelo</th><th>Año</th><th>Placa</th><th class="tr">Horómetro</th><th>Estado</th><th>Proyecto</th><th></th></tr></thead>
       <tbody id="tbMaster"></tbody>
     </table></div></div>
   </div>
@@ -1465,6 +1465,13 @@ select option{background:var(--panel2);}
 </div></div>
 
 <!-- Equipo Modal -->
+<!-- Modal Ver Equipo -->
+<div class="mo" id="mEqVer"><div class="modal" style="max-width:700px">
+  <div class="mh"><span class="mttl" id="eqVerTtl">🔍 Detalle Equipo</span><button class="mx" onclick="closeM('mEqVer')">✕</button></div>
+  <div class="mb" id="eqVerBody" style="font-size:.83rem"></div>
+  <div class="mf"><button class="btn btn-out" onclick="closeM('mEqVer')">Cerrar</button></div>
+</div></div>
+
 <div class="mo" id="mEquipo"><div class="modal" style="max-width:700px">
   <div class="mh"><span class="mttl">Agregar Equipo</span><button class="mx" onclick="closeM('mEquipo')">✕</button></div>
   <div style="display:flex;border-bottom:1px solid var(--border);padding:0 1rem;gap:0">
@@ -4585,43 +4592,25 @@ function rMaster(){
   document.getElementById('tbMaster').innerHTML=DB.equipos.map(e=>`<tr>
     <td class="mono" style="color:var(--mec)">${e.codigo}</td>
     <td><strong>${e.nombre}</strong></td>
-    <td><span class="badge b-purple">${e.tipo}</span></td>
-    <td>${e.marca||'—'}</td><td>${e.modelo||'—'}</td><td>${e.anio||'—'}</td>
-    <td class="mono">${e.numSerie||'—'}</td>
+    <td><span class="badge b-purple" style="font-size:.65rem">${e.tipo}</span></td>
+    <td style="font-size:.8rem">${e.marca||'—'}</td>
+    <td style="font-size:.8rem">${e.modelo||'—'}</td>
+    <td class="mono">${e.anio||'—'}</td>
     <td class="mono">${e.placa||'—'}</td>
-    <td class="tr mono">${e.potenciaHp!=null&&e.potenciaHp!==''?e.potenciaHp:'—'}</td>
-    <td class="tr mono">${e.capacidadM3!=null&&e.capacidadM3!==''?e.capacidadM3:'—'}</td>
-    <td class="tr mono">${e.pesoKg!=null&&e.pesoKg!==''?e.pesoKg:'—'}</td>
-    <td>${e.dimensiones||'—'}</td>
-    <td class="mono">${fmtN(e.hr)} h</td>
+    <td class="tr mono">${fmtN(e.hr)} h</td>
     <td>${bge(e.est)}</td>
-    <td>${e.ubicacion||'—'}</td>
-    <td class="mono">${e.fechaLlegada||'—'}</td>
-    <td class="mono">${e.fechaSalida||'—'}</td>
-    <td>${e.status||'—'}</td>
-    <td>${e.soat||'—'}</td>
-    <td>${e.polizaTrec||'—'}</td>
-    <td>${e.revisionTecnica||'—'}</td>
-    <td>${e.gps||'—'}</td>
-    <td>${e.proveedor||'—'}</td>
-    <td>${e.contacto||'—'}</td>
-    <td>${e.celular||'—'}</td>
-    <td>${e.correo||'—'}</td>
-    <td class="tr mono">${e.horasMinimas!=null&&e.horasMinimas!==''?fmtN(e.horasMinimas):'—'}</td>
-    <td class="tr mono">${e.tarifa?fmt(e.tarifa):'—'}</td>
-    <td class="mono">${e.inicioContrato||'—'}</td>
-    <td class="mono">${e.terminoContrato||'—'}</td>
-    <td class="tr mono">${e.ccGets?fmt(e.ccGets):'—'}</td>
-    <td class="tr mono">${e.ccEngrase?fmt(e.ccEngrase):'—'}</td>
-    <td class="tr mono">${e.ccRellenoNiveles?fmt(e.ccRellenoNiveles):'—'}</td>
-    <td class="tr mono">${e.ccMantPreventivo?fmt(e.ccMantPreventivo):'—'}</td>
-    <td class="tr mono">${e.ccMantCorrectivo?fmt(e.ccMantCorrectivo):'—'}</td>
     <td><span class="mono" style="font-size:.72rem;color:#a78bfa">${e.proyecto||'—'}</span></td>
-    <td><button class="btn btn-del btn-sm" onclick="del('equipos',${e.id})">🗑</button></td>
+    <td style="display:flex;gap:.3rem">
+      <button class="btn btn-out btn-sm" title="Ver detalle" onclick="verEquipo(${e.id})" style="color:#3b82f6;border-color:#3b82f660">👁</button>
+      <button class="btn btn-out btn-sm" title="Editar" onclick="editEquipo(${e.id})" style="color:#f59e0b;border-color:#f59e0b60">✏️</button>
+      <button class="btn btn-del btn-sm" onclick="del('equipos',${e.id})">🗑</button>
+    </td>
   </tr>`).join('');
 }
-let _eqTab=0;
+let _eqTab=0,_eqEditId=null;
 function openEquipo(){
+  _eqEditId=null;
+  document.querySelector('#mEquipo .mttl').textContent='Agregar Equipo';
   _eqTab=0;eqGoTab(0);
   const ps=document.getElementById('eqProy');
   if(ps)ps.innerHTML='<option value="">— Sin proyecto —</option>'+DB.proyectos.map(p=>`<option value="${p.codigo}">${p.codigo}</option>`).join('');
@@ -4682,9 +4671,95 @@ function gEquipo(){
     proyecto:document.getElementById('eqProy').value||null,
     ultMant:'—',proxMant:'—'
   };
-  DB.equipos.push(eq);
-  syncSheet('saveEquipo',eq);
-  closeM('mEquipo');rMaster();toast('Equipo agregado');
+  if(_eqEditId!==null){
+    const idx=DB.equipos.findIndex(x=>x.id===_eqEditId);
+    if(idx>-1){DB.equipos[idx]={...DB.equipos[idx],...eq,id:_eqEditId};syncSheet('saveEquipo',DB.equipos[idx]);}
+    _eqEditId=null;
+    document.querySelector('#mEquipo .mttl').textContent='Agregar Equipo';
+    closeM('mEquipo');rMaster();toast('Equipo actualizado');
+  }else{
+    DB.equipos.push(eq);
+    syncSheet('saveEquipo',eq);
+    closeM('mEquipo');rMaster();toast('Equipo agregado');
+  }
+}
+function verEquipo(id){
+  const e=DB.equipos.find(x=>x.id===id);if(!e)return;
+  const row=(l,v)=>`<div style="display:flex;gap:.5rem;padding:.28rem 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted2);min-width:170px;font-size:.74rem">${l}</span><span style="font-weight:500;font-size:.82rem">${v||'—'}</span></div>`;
+  const sec=(t)=>`<div style="background:var(--mec);color:#fff;font-size:.69rem;font-weight:700;padding:.22rem .6rem;border-radius:4px;margin:.65rem 0 .25rem;letter-spacing:.06em;text-transform:uppercase">${t}</div>`;
+  document.getElementById('eqVerTtl').textContent='🔍 '+e.codigo+' – '+e.nombre;
+  document.getElementById('eqVerBody').innerHTML=`
+    ${sec('Generales')}
+    ${row('Código',e.codigo)}${row('Tipo / Línea',e.tipo)}${row('Subtipo',e.sub)}
+    ${row('Marca',e.marca)}${row('Modelo',e.modelo)}${row('Año',e.anio)}
+    ${row('Placa',e.placa)}${row('Horómetro',fmtN(e.hr)+' h')}${row('Estado',e.est)}
+    ${row('Proyecto',e.proyecto)}
+    ${sec('Técnicos')}
+    ${row('N° de Serie',e.numSerie)}${row('Potencia HP',e.potenciaHp)}
+    ${row('Capacidad M³',e.capacidadM3)}${row('Peso KG',e.pesoKg)}
+    ${row('Dimensiones',e.dimensiones)}${row('Ubicación',e.ubicacion)}
+    ${row('F. Llegada',e.fechaLlegada)}${row('F. Salida',e.fechaSalida)}
+    ${row('Status',e.status)}${row('SOAT',e.soat)}${row('P. TREC',e.polizaTrec)}
+    ${row('Rev. Técnica',e.revisionTecnica)}${row('GPS',e.gps)}
+    ${sec('Contrato / Proveedor')}
+    ${row('Proveedor',e.proveedor)}${row('Contacto',e.contacto)}
+    ${row('Celular',e.celular)}${row('Correo',e.correo)}
+    ${row('H. Mínimas',e.horasMinimas!=null?fmtN(e.horasMinimas)+' h':null)}
+    ${row('Tarifa S/',e.tarifa?fmt(e.tarifa):null)}
+    ${row('Inicio Contrato',e.inicioContrato)}${row('Término Contrato',e.terminoContrato)}
+    ${sec('Costos Mantenimiento')}
+    ${row('CC GET\'S',e.ccGets?fmt(e.ccGets):null)}${row('CC Engrase',e.ccEngrase?fmt(e.ccEngrase):null)}
+    ${row('CC Relleno Niveles',e.ccRellenoNiveles?fmt(e.ccRellenoNiveles):null)}
+    ${row('CC Mant. Preventivo',e.ccMantPreventivo?fmt(e.ccMantPreventivo):null)}
+    ${row('CC Mant. Correctivo',e.ccMantCorrectivo?fmt(e.ccMantCorrectivo):null)}
+  `;
+  openM('mEqVer');
+}
+function editEquipo(id){
+  const e=DB.equipos.find(x=>x.id===id);if(!e)return;
+  _eqEditId=id;
+  openEquipo();
+  document.querySelector('#mEquipo .mttl').textContent='✏️ Editar Equipo: '+e.codigo;
+  // Tab 0
+  document.getElementById('eqCod').value=e.codigo||'';
+  document.getElementById('eqTi').value=e.tipo||'Línea Amarilla';
+  document.getElementById('eqSub').value=e.sub||'Excavadora';
+  document.getElementById('eqMa').value=e.marca||'';
+  document.getElementById('eqMo').value=e.modelo||'';
+  document.getElementById('eqAn').value=e.anio||'';
+  document.getElementById('eqPl').value=e.placa||'';
+  document.getElementById('eqHr').value=e.hr||0;
+  document.getElementById('eqEst').value=e.est||'Operativo';
+  document.getElementById('eqProy').value=e.proyecto||'';
+  // Tab 1
+  document.getElementById('eqNs').value=e.numSerie||'';
+  document.getElementById('eqPhp').value=e.potenciaHp||'';
+  document.getElementById('eqCm3').value=e.capacidadM3||'';
+  document.getElementById('eqPkg').value=e.pesoKg||'';
+  document.getElementById('eqDim').value=e.dimensiones||'';
+  document.getElementById('eqUbi').value=e.ubicacion||'';
+  document.getElementById('eqFll').value=e.fechaLlegada||'';
+  document.getElementById('eqFls').value=e.fechaSalida||'';
+  document.getElementById('eqSts').value=e.status||'';
+  document.getElementById('eqSoat').value=e.soat||'';
+  document.getElementById('eqPtr').value=e.polizaTrec||'';
+  document.getElementById('eqRtec').value=e.revisionTecnica||'';
+  document.getElementById('eqGps').value=e.gps||'';
+  // Tab 2
+  document.getElementById('eqProv').value=e.proveedor||'';
+  document.getElementById('eqCtc').value=e.contacto||'';
+  document.getElementById('eqCel').value=e.celular||'';
+  document.getElementById('eqCor').value=e.correo||'';
+  document.getElementById('eqHmin').value=e.horasMinimas||'';
+  document.getElementById('eqTar').value=e.tarifa||'';
+  document.getElementById('eqIco').value=e.inicioContrato||'';
+  document.getElementById('eqTco').value=e.terminoContrato||'';
+  // Tab 3
+  document.getElementById('eqCcg').value=e.ccGets||'';
+  document.getElementById('eqCce').value=e.ccEngrase||'';
+  document.getElementById('eqCcrn').value=e.ccRellenoNiveles||'';
+  document.getElementById('eqCcmp').value=e.ccMantPreventivo||'';
+  document.getElementById('eqCcmc').value=e.ccMantCorrectivo||'';
 }
 function rProg(){
   const pen=DB.mantenimientos.filter(m=>m.est==='Programado').length,proc=DB.mantenimientos.filter(m=>m.est==='En Proceso').length,comp=DB.mantenimientos.filter(m=>m.est==='Completado').length;
