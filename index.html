@@ -5785,16 +5785,38 @@ function gMaterial(){
 }
 
 function del(t,id){
-  if(!confirm('¿Eliminar este registro?'))return;
-  
-  // Capturar datos relacionados antes de eliminar
   const _prevRec=DB[t]?DB[t].find(r=>r.id===id):null;
+  if(t==='equipos'){
+    const mants=DB.mantenimientos.filter(m=>m.eqId===id).length;
+    const auxs=DB.auxiliosMecanicos.filter(a=>a.eqId===id).length;
+    const parts=DB.partes?DB.partes.filter(p=>p.eqId===id).length:0;
+    const eq=_prevRec;
+    let msg=`⚠️ ¿Eliminar el equipo "${eq?eq.codigo+' – '+eq.nombre:''}"?\n\nEsto también eliminará:`;
+    if(mants)msg+=`\n• ${mants} orden(es) de mantenimiento / programación`;
+    if(parts)msg+=`\n• ${parts} parte(s) diario(s)`;
+    if(auxs)msg+=`\n• ${auxs} auxilio(s) mecánico(s)`;
+    if(!mants&&!parts&&!auxs)msg+='\n• (sin registros vinculados)';
+    msg+='\n\nEsta acción no se puede deshacer.';
+    if(!confirm(msg))return;
+  }else{
+    if(!confirm('¿Eliminar este registro?'))return;
+  }
   const _prevRqRef=_prevRec&&_prevRec.rqRef?_prevRec.rqRef:null;
+  // Cascade: eliminar dependientes antes de borrar el equipo
+  if(t==='equipos'){
+    DB.mantenimientos.filter(m=>m.eqId===id).forEach(m=>supaDelete('mantenimientos',m.id));
+    DB.mantenimientos=DB.mantenimientos.filter(m=>m.eqId!==id);
+    if(DB.partes){DB.partes.filter(p=>p.eqId===id).forEach(p=>supaDelete('partes',p.id));DB.partes=DB.partes.filter(p=>p.eqId!==id);}
+    DB.auxiliosMecanicos.filter(a=>a.eqId===id).forEach(a=>{
+      DB.auxMecInsumos.filter(i=>i.auxilioId===a.id).forEach(i=>supaDelete('auxMecInsumos',i.id));
+      DB.auxMecInsumos=DB.auxMecInsumos.filter(i=>i.auxilioId!==a.id);
+      supaDelete('auxiliosMecanicos',a.id);
+    });
+    DB.auxiliosMecanicos=DB.auxiliosMecanicos.filter(a=>a.eqId!==id);
+  }
   DB[t]=DB[t].filter(r=>r.id!==id);
   supaDelete(t,id);
-  // Limpiar insumos relacionados al borrar un auxilio (Supabase tiene CASCADE)
   if(t==='auxiliosMecanicos')DB.auxMecInsumos=DB.auxMecInsumos.filter(r=>r.auxilioId!==id);
-  // Recalcular estado del RQ si se eliminó una entrada de almacén vinculada
   if(t==='almacen'&&_prevRqRef)_autoUpdateRqEst(_prevRqRef);
   renderPage(AP);toast('Eliminado');
 }
