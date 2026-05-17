@@ -4901,7 +4901,10 @@ function printProgGantt(){
   }).join('');
   const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Programación Semana ${semana}</title>
 <style>@page{size:A4 landscape;margin:1cm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:10px;color:#111;margin:0}
-h1{font-size:14px;margin:0;color:#1e3a5f}h2{font-size:10px;margin:2px 0 10px;color:#64748b;font-weight:normal}
+.hdr{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #1e3a5f;padding-bottom:7px;margin-bottom:9px;gap:1rem}
+.hdr-logo{flex:0 0 auto}.hdr-logo img{height:52px;object-fit:contain}
+.hdr-mid{flex:1;text-align:center}.hdr-mid h1{font-size:15px;color:#1e3a5f;margin:0 0 2px;font-weight:700}.hdr-mid p{font-size:9px;color:#64748b;margin:0}
+.hdr-info{flex:0 0 auto;text-align:right;font-size:8.5px;color:#94a3b8}
 .kpis{display:flex;gap:10px;margin-bottom:10px}.kpi{border-left:3px solid;padding:5px 10px;background:#f8fafc;border-radius:3px}
 .kl{font-size:8px;color:#64748b;text-transform:uppercase}.kv{font-size:17px;font-weight:700}
 table{width:100%;border-collapse:collapse}th{background:#1e3a5f;color:#fff;padding:4px 6px;text-align:left;font-size:9px}
@@ -4911,9 +4914,10 @@ td{border:1px solid #e2e8f0;padding:3px 5px;vertical-align:middle}tr:nth-child(e
 .ld{width:10px;height:10px;border-radius:2px;display:inline-block}
 @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 </style></head><body>
-<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:8px">
-  <div><h1>📅 Programación de Mantenimiento</h1><h2>Semana N° ${semana} &nbsp;·&nbsp; ${desde} → ${hasta} &nbsp;·&nbsp; ${rows.length} orden(es)</h2></div>
-  <div style="text-align:right"><div style="font-weight:700;font-size:12px;color:#1e3a5f">GDAR – ECOSERMO</div><div style="font-size:8px;color:#94a3b8">Generado: ${new Date().toLocaleString('es-PE')}</div></div>
+<div class="hdr">
+  <div class="hdr-logo"><img src="__LOGO__" alt="Ecosermo"></div>
+  <div class="hdr-mid"><h1>PROGRAMACIÓN DE MANTENIMIENTO</h1><p>ECOSERMO – Sistema de Control de Mantenimiento Mecánico – GDAR</p></div>
+  <div class="hdr-info"><div style="font-weight:700;color:#1e3a5f;font-size:10px">Semana N° ${semana}</div><div>${desde} → ${hasta}</div><div>${rows.length} orden(es)</div><div style="margin-top:3px">Generado: ${new Date().toLocaleString('es-PE')}</div></div>
 </div>
 <div class="kpis">
   <div class="kpi" style="border-color:#3b82f6"><div class="kl">Programados</div><div class="kv" style="color:#3b82f6">${rows.filter(r=>r.est==='Programado').length}</div></div>
@@ -4927,8 +4931,10 @@ td{border:1px solid #e2e8f0;padding:3px 5px;vertical-align:middle}tr:nth-child(e
 <table class="gantt"><thead><tr><th style="width:80px">OT</th><th style="width:140px">Equipo</th><th style="width:120px">Mecánico</th><th style="width:75px">Estado</th>${dayHdrs}</tr></thead><tbody>${ganttRows}</tbody></table>
 <div class="legend"><strong>Leyenda:</strong><span class="ld" style="background:#3b82f6"></span>Programado<span class="ld" style="background:#f59e0b"></span>En Proceso<span class="ld" style="background:#10b981"></span>Completado<span class="ld" style="background:#9ca3af"></span>Postergado</div>
 </body></html>`;
+  const _logoUrl=window.location.href.replace(/[^\/\\]+$/,'')+'09.-ERP/Imagenes/ECOSERMO-LOGO.png';
+  const htmlFinal=html.replace('__LOGO__',_logoUrl);
   const win=window.open('','_blank','width=1200,height=750');
-  win.document.write(html);win.document.close();
+  win.document.write(htmlFinal);win.document.close();
   setTimeout(()=>win.print(),700);
 }
 
