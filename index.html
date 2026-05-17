@@ -733,6 +733,24 @@ select option{background:var(--panel2);}
   </div>
 </div>
 
+<!-- AUXILIOS MECÁNICOS -->
+<div class="page" id="page-auxiliosMecanicos">
+  <div class="ph"><div class="ph-title" style="color:var(--mec)">Auxilios Mecánicos</div><div class="ph-sub">Registro de atenciones mecánicas de emergencia en campo</div></div>
+  <div class="kpi-row" id="auxMecKpis"></div>
+  <div class="card">
+    <div class="card-head"><span class="card-title">Registro de Auxilios</span>
+      <div class="card-head-right">
+        <div class="search-wrap"><span>🔍</span><input class="search-input" placeholder="Buscar..." oninput="flt(this,'tbAuxMec')"></div>
+        <button class="btn btn-a" style="--ba:var(--mec)" onclick="openAuxMec()">＋ Registrar Auxilio</button>
+      </div>
+    </div>
+    <div class="card-body"><div class="tbl-wrap"><table>
+      <thead><tr><th>Fecha</th><th>Hora</th><th>Equipo</th><th>Operador</th><th>Tipo Falla</th><th>Descripción</th><th>Mecánico</th><th>T. Parada (h)</th><th>Estado</th><th></th></tr></thead>
+      <tbody id="tbAuxMec"></tbody>
+    </table></div></div>
+  </div>
+</div>
+
 <!-- PLANNER -->
 <div class="page" id="page-planner">
   <div class="ph"><div class="ph-title" style="color:var(--ctl)">Planner de Proyecto</div><div class="ph-sub">Programación y avance de actividades</div></div>
@@ -1526,6 +1544,25 @@ select option{background:var(--panel2);}
   <div class="mf"><button class="btn btn-out" onclick="closeM('mMant')">Cancelar</button><button class="btn btn-a" style="--ba:var(--mec)" onclick="gMant()">Guardar</button></div>
 </div></div>
 
+<!-- Modal Auxilio Mecánico -->
+<div class="mo" id="mAuxMec"><div class="modal" style="max-width:640px">
+  <div class="mh"><span class="mttl">🚨 Registrar Auxilio Mecánico</span><button class="mx" onclick="closeM('mAuxMec')">✕</button></div>
+  <div class="mb"><div class="fg-grid">
+    <div class="fg"><label>Fecha</label><input id="amFecha" type="date"></div>
+    <div class="fg"><label>Hora de Llamada</label><input id="amHora" type="time"></div>
+    <div class="fg"><label>Equipo</label><select id="amEq"><option value="">— Seleccionar —</option></select></div>
+    <div class="fg"><label>Operador</label><input id="amOp" placeholder="Nombre del operador"></div>
+    <div class="fg"><label>Tipo de Falla</label><select id="amTipo"><option>Mecánico</option><option>Eléctrico</option><option>Hidráulico</option><option>Neumático</option><option>Estructura/Carrocería</option><option>Otros</option></select></div>
+    <div class="fg"><label>Mecánico que Atendió</label><select id="amMec"></select></div>
+    <div class="fg" style="grid-column:1/-1"><label>Descripción del Problema</label><input id="amDesc" placeholder="Detalle la falla o avería presentada..."></div>
+    <div class="fg" style="grid-column:1/-1"><label>Acciones Realizadas</label><textarea id="amAccion" rows="2" placeholder="Trabajos realizados para solucionar el problema..."></textarea></div>
+    <div class="fg"><label>T. Parada (horas)</label><input id="amParada" type="number" step="0.5" min="0" placeholder="0.0"></div>
+    <div class="fg"><label>Estado</label><select id="amEst"><option>Pendiente</option><option>En Proceso</option><option>Atendido</option></select></div>
+    <div class="fg" style="grid-column:1/-1"><label>Observaciones</label><textarea id="amObs" rows="2" placeholder="Repuestos usados, recomendaciones..."></textarea></div>
+  </div></div>
+  <div class="mf"><button class="btn btn-out" onclick="closeM('mAuxMec')">Cancelar</button><button class="btn btn-a" style="--ba:var(--mec)" onclick="gAuxMec()">Guardar</button></div>
+</div></div>
+
 <!-- Planner Modal -->
 <div class="mo" id="mAct"><div class="modal">
   <div class="mh"><span class="mttl">Nueva Actividad</span><button class="mx" onclick="closeM('mAct')">✕</button></div>
@@ -1843,7 +1880,7 @@ const AREAS={
   seguridad:{label:'Seguridad',icon:'🛡️',color:'#ef4444',prefix:'ECOSEG',
     modules:[{key:'seguridad',label:'Seguridad',icon:'⛑️'},{key:'medioAmbiente',label:'Medio Ambiente',icon:'🌿'}]},
   mantenimiento:{label:'Mantenimiento Mecánico',icon:'🔧',color:'#8b5cf6',prefix:'ECOMEC',
-    modules:[{key:'masterEquipos',label:'Máster de Equipos',icon:'🗂️'},{key:'programacionEquipos',label:'Programación',icon:'📅'}]},
+    modules:[{key:'masterEquipos',label:'Máster de Equipos',icon:'🗂️'},{key:'programacionEquipos',label:'Programación',icon:'📅'},{key:'auxiliosMecanicos',label:'Auxilios Mecánicos',icon:'🚨'}]},
   controlProyecto:{label:'Control de Proyecto',icon:'📊',color:'#10b981',prefix:'ECOCTL',
     modules:[{key:'planner',label:'Planner',icon:'📈'}]},
     //-Menu para control de equipos.
@@ -1863,7 +1900,7 @@ const AREAS={
 // ══ USERS ══
 const USERS=[
   {codigo:'EIBEL25',dni:'46108109',nombre:'Abel Rodriguez A.',cargo:'PCO',areas:Object.keys(AREAS)},
-  {codigo:'ECOADM',dni:'00001111',nombre:'Usuario General',cargo:'General',areas:Object.keys(AREAS)},
+  {codigo:'ECOADM',dni:'11111111',nombre:'Usuario General',cargo:'General',areas:Object.keys(AREAS)},
   {codigo:'ECOADM',dni:'87654321',nombre:'Carmen Salazar Rojas',cargo:'Administradora',areas:['administracion']},
   {codigo:'ECOBSW',dni:'11112222',nombre:'María Torres Díaz',cargo:'Asistenta Social',areas:['bienestarSocial']},
   {codigo:'FLOBEN',dni:'10199407',nombre:'Flor Benites',cargo:'Jefe de Seguridad',areas:['almacenLogistica','seguridad']},
@@ -1913,7 +1950,7 @@ const SUPA_TABLES={
   mantenimientos:'mantenimientos',planner:'planner',facturas:'facturas',
   costos:'costos',frentesTrabajo:'frentes_trabajo',tipoMaterial:'tipo_material',
   tramos:'tramos',catalogoItems:'materiales',unidades:'unidades',
-  asistencia:'asistencia',proyectos:'proyectos'
+  asistencia:'asistencia',proyectos:'proyectos',auxiliosMecanicos:'auxilios_mecanicos'
 };
 
 const ACTION_MAP={
@@ -1926,7 +1963,8 @@ const ACTION_MAP={
   savePlanner:'planner',saveFrenteTrabajo:'frentesTrabajo',
   saveTipoMaterial:'tipoMaterial',saveTramo:'tramos',
   saveCatalogo:'catalogoItems',saveRequerimiento:'requerimientos',
-  saveFacturaPago:'facturasPago',saveAsistencia:'asistencia',saveProyecto:'proyectos'
+  saveFacturaPago:'facturasPago',saveAsistencia:'asistencia',saveProyecto:'proyectos',
+  saveAuxMec:'auxiliosMecanicos'
 };
 
 async function supaUpsert(dbKey,record){
@@ -2024,7 +2062,7 @@ async function loadSheetsData(){
       combustible:'comb',supervision:'super',incidentes:'inc',petar:'pet',
       ambiental:'amb',equipos:'eq',mantenimientos:'mant',planner:'plan',
       facturas:'fact',costos:'cost',frentesTrabajo:'ft',tipoMaterial:'tm',
-      tramos:'tr',catalogoItems:'cat',facturasPago:'fpago',proyectos:'proy'};
+      tramos:'tr',catalogoItems:'cat',facturasPago:'fpago',proyectos:'proy',auxiliosMecanicos:'auxMec'};
     let loaded=false;
     results.forEach(({dbKey,data,error})=>{
       if(!error&&data&&data.length>0){
@@ -2146,8 +2184,8 @@ const DB={
   almacen:[],requerimientos:[],facturasPago:[],combustible:[],supervision:[],
   incidentes:[],petar:[],ambiental:[],equipos:[],partes:[],mantenimientos:[],
   planner:[],facturas:[],costos:[],frentesTrabajo:[],tipoMaterial:[],tramos:[],
-  catalogoItems:[],unidades:[],asistencia:[],proyectos:[],
-  nx:{personal:1,social:1,res:1,ali:1,hosp:1,lav:1,alm:1,comb:1,super:1,inc:1,pet:1,amb:1,eq:1,mant:1,plan:1,fact:1,cost:1,ft:1,tm:1,tr:1,req:1,fpago:1,cat:1,und:1,proy:1}
+  catalogoItems:[],unidades:[],asistencia:[],proyectos:[],auxiliosMecanicos:[],
+  nx:{personal:1,social:1,res:1,ali:1,hosp:1,lav:1,alm:1,comb:1,super:1,inc:1,pet:1,amb:1,eq:1,mant:1,plan:1,fact:1,cost:1,ft:1,tm:1,tr:1,req:1,fpago:1,cat:1,und:1,proy:1,auxMec:1}
 };
 
 // ══ STATE ══
@@ -2382,7 +2420,7 @@ function setPage(k){
   renderPage(k);
 }
 function renderPage(k){
-  const m={dashboard:rDash,personal:rPersonal,asistencia:rAsistencia,planilla:()=>{},asistentaSocial:rSocial,residencia:rResidencia,alimentacion:rAli,hospedaje:rHosp,lavanderia:rLav,almacen:rAlm,combustible:rComb,proyectos:rProyectos,requerimientos:rReq,materiales:rMateriales,facturasPago:rFPago,supervision:rSuper,seguridad:rSeg,medioAmbiente:rAmb,masterEquipos:rMaster,programacionEquipos:rProg,planner:rPlanner,lineaAmarilla:()=>rLinea('Línea Amarilla'),lineaBlanca:()=>rLinea('Línea Blanca'),vehiculosMenores:()=>rLinea('Vehículo Menor'),equiposComplementarios:()=>rLinea('Equipos Complementarios'),panelHoras:rPanelHoras,frentesTrabajo:rFrentes,tipoMaterial:rTipoMaterial,tramos:rTramos,facturacion:rFact,costos:rCostos};
+  const m={dashboard:rDash,personal:rPersonal,asistencia:rAsistencia,planilla:()=>{},asistentaSocial:rSocial,residencia:rResidencia,alimentacion:rAli,hospedaje:rHosp,lavanderia:rLav,almacen:rAlm,combustible:rComb,proyectos:rProyectos,requerimientos:rReq,materiales:rMateriales,facturasPago:rFPago,supervision:rSuper,seguridad:rSeg,medioAmbiente:rAmb,masterEquipos:rMaster,programacionEquipos:rProg,auxiliosMecanicos:rAuxMec,planner:rPlanner,lineaAmarilla:()=>rLinea('Línea Amarilla'),lineaBlanca:()=>rLinea('Línea Blanca'),vehiculosMenores:()=>rLinea('Vehículo Menor'),equiposComplementarios:()=>rLinea('Equipos Complementarios'),panelHoras:rPanelHoras,frentesTrabajo:rFrentes,tipoMaterial:rTipoMaterial,tramos:rTramos,facturacion:rFact,costos:rCostos};
   if(m[k])m[k]();
 }
 
@@ -4592,6 +4630,70 @@ function rProg(){
   }).join('');
 }
 function gMant(){const eqId=+document.getElementById('otEq').value;if(!eqId){toast('Seleccione equipo',true);return;}DB.mantenimientos.push({id:nid('mant'),ot:document.getElementById('otN').value||`OT-2026-${String(DB.mantenimientos.length+1).padStart(3,'0')}`,eqId,tipo:document.getElementById('otTi').value,desc:document.getElementById('otDe').value,mec:document.getElementById('otMec').value,fp:document.getElementById('otFp').value||today(),fe:document.getElementById('otFe').value,hs:+document.getElementById('otHs').value||0,est:document.getElementById('otEs').value});syncSheet('saveMantenimiento',DB.mantenimientos[DB.mantenimientos.length-1]);closeM('mMant');rProg();toast('Mantenimiento programado');}
+
+// ══ AUXILIOS MECÁNICOS ══
+function rAuxMec(){
+  const tots=DB.auxiliosMecanicos.length;
+  const pen=DB.auxiliosMecanicos.filter(r=>r.est==='Pendiente').length;
+  const proc=DB.auxiliosMecanicos.filter(r=>r.est==='En Proceso').length;
+  const aten=DB.auxiliosMecanicos.filter(r=>r.est==='Atendido').length;
+  document.getElementById('auxMecKpis').innerHTML=[
+    {l:'Total Auxilios',v:tots,c:'#8b5cf6'},
+    {l:'Pendientes',v:pen,c:'#ef4444'},
+    {l:'En Proceso',v:proc,c:'#f59e0b'},
+    {l:'Atendidos',v:aten,c:'#10b981'}
+  ].map(k=>`<div class="kpi" style="--kc:${k.c}"><div class="kpi-lbl">${k.l}</div><div class="kpi-val">${k.v}</div></div>`).join('');
+  document.getElementById('tbAuxMec').innerHTML=DB.auxiliosMecanicos.slice().reverse().map(r=>{
+    const eq=DB.equipos.find(e=>e.id===r.eqId);
+    const eqLabel=eq?`<span class="mono" style="font-size:.72rem;color:var(--mec)">${eq.codigo}</span> ${eq.nombre.split(' ').slice(0,2).join(' ')}`:'—';
+    return`<tr>
+      <td class="mono">${r.fecha||'—'}</td>
+      <td class="mono">${r.hora||'—'}</td>
+      <td style="font-size:.8rem">${eqLabel}</td>
+      <td style="font-size:.8rem">${r.operador||'—'}</td>
+      <td><span class="badge b-purple" style="font-size:.65rem">${r.tipo||'—'}</span></td>
+      <td style="font-size:.78rem;max-width:180px;white-space:normal">${r.desc||'—'}</td>
+      <td style="font-size:.8rem">${r.mec||'—'}</td>
+      <td class="mono tr">${r.tiempoParada!=null?fmtN(r.tiempoParada):'—'}</td>
+      <td>${bge(r.est)}</td>
+      <td><button class="btn btn-del btn-sm" onclick="del('auxiliosMecanicos',${r.id})">🗑</button></td>
+    </tr>`;
+  }).join('');
+}
+function openAuxMec(){
+  const eqSel=document.getElementById('amEq');
+  if(eqSel)eqSel.innerHTML='<option value="">— Seleccionar —</option>'+DB.equipos.map(e=>`<option value="${e.id}">${e.codigo} – ${e.nombre.split(' ').slice(0,3).join(' ')}</option>`).join('');
+  const mecSel=document.getElementById('amMec');
+  if(mecSel){const mecList=DB.personal.filter(p=>p.cat==='Mecánico'||p.cargo.toLowerCase().includes('mecán'));
+    mecSel.innerHTML='<option value="">— Seleccionar —</option>'+(mecList.length?mecList:DB.personal).map(p=>`<option>${p.ape}, ${p.nom}</option>`).join('');}
+  document.getElementById('amFecha').value=today();
+  document.getElementById('amHora').value='';
+  ['amOp','amDesc','amAccion','amParada','amObs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('amTipo').value='Mecánico';
+  document.getElementById('amEst').value='Pendiente';
+  openM('mAuxMec');
+}
+function gAuxMec(){
+  const eqId=+document.getElementById('amEq').value||null;
+  const rec={
+    id:nid('auxMec'),
+    fecha:document.getElementById('amFecha').value||today(),
+    hora:document.getElementById('amHora').value||null,
+    eqId,
+    operador:document.getElementById('amOp').value.trim()||null,
+    tipo:document.getElementById('amTipo').value,
+    mec:document.getElementById('amMec').value,
+    desc:document.getElementById('amDesc').value.trim(),
+    accion:document.getElementById('amAccion').value.trim()||null,
+    tiempoParada:+document.getElementById('amParada').value||null,
+    est:document.getElementById('amEst').value,
+    obs:document.getElementById('amObs').value.trim()||null,
+  };
+  if(!rec.desc){toast('Ingrese descripción del problema',true);return;}
+  DB.auxiliosMecanicos.push(rec);
+  syncSheet('saveAuxMec',rec);
+  closeM('mAuxMec');rAuxMec();toast('Auxilio mecánico registrado');
+}
 
 // ══ PLANNER ══
 function rPlanner(){
