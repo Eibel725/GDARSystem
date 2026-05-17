@@ -290,7 +290,10 @@ select option{background:var(--panel2);}
     <div class="login-body">
       <div class="login-err" id="loginErr">Código incorrecto. Verifique sus credenciales.</div>
       <label class="lbl">Código de Acceso</label>
-      <input class="login-input" id="loginCodigo" placeholder="Ingrese su código" autocomplete="off" spellcheck="false">
+      <div style="position:relative;width:100%">
+        <input class="login-input" id="loginCodigo" type="password" placeholder="Ingrese su código" autocomplete="off" spellcheck="false" style="width:100%;padding-right:2.8rem;box-sizing:border-box">
+        <button type="button" onclick="const i=document.getElementById('loginCodigo');const b=this;i.type=i.type==='password'?'text':'password';b.textContent=i.type==='password'?'👁':'🙈';" style="position:absolute;right:.6rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--muted2);padding:.2rem;line-height:1">👁</button>
+      </div>
       <button class="login-btn" onclick="doLogin()">▶ INGRESAR AL SISTEMA</button>
       <!-- ACCESOS DEMO OCULTOS — descomentar para restaurar
       <div class="login-demos">
