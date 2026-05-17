@@ -1547,6 +1547,13 @@ select option{background:var(--panel2);}
   <div class="mf"><button class="btn btn-out" onclick="closeM('mMant')">Cancelar</button><button class="btn btn-a" style="--ba:var(--mec)" onclick="gMant()">Guardar</button></div>
 </div></div>
 
+<!-- Modal Ver Auxilio Mecánico -->
+<div class="mo" id="mAuxMecVer"><div class="modal" style="max-width:680px">
+  <div class="mh"><span class="mttl" id="auxVerTtl">🔍 Detalle Auxilio</span><button class="mx" onclick="closeM('mAuxMecVer')">✕</button></div>
+  <div class="mb" id="auxVerBody" style="font-size:.83rem"></div>
+  <div class="mf"><button class="btn btn-out" onclick="closeM('mAuxMecVer')">Cerrar</button></div>
+</div></div>
+
 <!-- Modal Auxilio Mecánico (4 tabs) -->
 <div class="mo" id="mAuxMec"><div class="modal" style="max-width:680px">
   <div class="mh"><span class="mttl">🚨 Registrar Auxilio Mecánico</span><button class="mx" onclick="closeM('mAuxMec')">✕</button></div>
@@ -4682,7 +4689,7 @@ function rProg(){
 function gMant(){const eqId=+document.getElementById('otEq').value;if(!eqId){toast('Seleccione equipo',true);return;}DB.mantenimientos.push({id:nid('mant'),ot:document.getElementById('otN').value||`OT-2026-${String(DB.mantenimientos.length+1).padStart(3,'0')}`,eqId,tipo:document.getElementById('otTi').value,desc:document.getElementById('otDe').value,mec:document.getElementById('otMec').value,fp:document.getElementById('otFp').value||today(),fe:document.getElementById('otFe').value,hs:+document.getElementById('otHs').value||0,est:document.getElementById('otEs').value});syncSheet('saveMantenimiento',DB.mantenimientos[DB.mantenimientos.length-1]);closeM('mMant');rProg();toast('Mantenimiento programado');}
 
 // ══ AUXILIOS MECÁNICOS ══
-let _amTab=0;
+let _amTab=0,_amEditId=null;
 function amGoTab(n){
   _amTab=n;
   [0,1,2,3].forEach(i=>{
@@ -4740,11 +4747,17 @@ function rAuxMec(){
       <td class="mono tr">${r.tiempoParada!=null?fmtN(r.tiempoParada)+' h':'—'}</td>
       <td>${bge(r.est)}</td>
       <td style="font-size:.72rem;color:var(--muted2)">${DB.auxMecInsumos.filter(i=>i.auxilioId===r.id).length||'—'}</td>
-      <td><button class="btn btn-del btn-sm" onclick="del('auxiliosMecanicos',${r.id})">🗑</button></td>
+      <td style="display:flex;gap:.3rem;flex-wrap:nowrap">
+        <button class="btn btn-out btn-sm" title="Ver detalle" onclick="verAuxMec(${r.id})" style="color:#3b82f6;border-color:#3b82f660">👁</button>
+        ${r.est!=='Atendido'?`<button class="btn btn-out btn-sm" title="Editar" onclick="editAuxMec(${r.id})" style="color:#f59e0b;border-color:#f59e0b60">✏️</button>`:''}
+        ${r.est!=='Atendido'?`<button class="btn btn-del btn-sm" onclick="del('auxiliosMecanicos',${r.id})">🗑</button>`:''}
+      </td>
     </tr>`;
   }).join('');
 }
 function openAuxMec(){
+  _amEditId=null;
+  document.querySelector('#mAuxMec .mttl').textContent='🚨 Registrar Auxilio Mecánico';
   _amTab=0;amGoTab(0);
   const eqSel=document.getElementById('amEq');
   if(eqSel)eqSel.innerHTML='<option value="">— Seleccionar —</option>'+DB.equipos.map(e=>`<option value="${e.id}">${e.codigo} – ${e.nombre.split(' ').slice(0,3).join(' ')}</option>`).join('');
@@ -4797,15 +4810,113 @@ function gAuxMec(){
     conforme:document.getElementById('amConforme').checked,
     obs:document.getElementById('amObs').value.trim()||null,
   };
-  DB.auxiliosMecanicos.push(rec);
-  syncSheet('saveAuxMec',rec);
-  // Guardar insumos como filas independientes
-  amGetInsumos().forEach(ins=>{
-    const insRec={id:nid('auxMecIns'),auxilioId:rec.id,desc:ins.desc,cod:ins.cod||null,cant:ins.cant,und:ins.und||null,origen:ins.origen};
-    DB.auxMecInsumos.push(insRec);
-    syncSheet('saveAuxMecInsumo',insRec);
+  const _saveInsumos=(auxilioId)=>{
+    amGetInsumos().forEach(ins=>{
+      const insRec={id:nid('auxMecIns'),auxilioId,desc:ins.desc,cod:ins.cod||null,cant:ins.cant,und:ins.und||null,origen:ins.origen};
+      DB.auxMecInsumos.push(insRec);
+      syncSheet('saveAuxMecInsumo',insRec);
+    });
+  };
+  if(_amEditId!==null){
+    // EDITAR: actualizar registro existente
+    const idx=DB.auxiliosMecanicos.findIndex(x=>x.id===_amEditId);
+    if(idx>-1){DB.auxiliosMecanicos[idx]={...DB.auxiliosMecanicos[idx],...rec,id:_amEditId};syncSheet('saveAuxMec',DB.auxiliosMecanicos[idx]);}
+    // Reemplazar insumos: borrar los viejos e insertar nuevos
+    const viejosIds=DB.auxMecInsumos.filter(i=>i.auxilioId===_amEditId).map(i=>i.id);
+    DB.auxMecInsumos=DB.auxMecInsumos.filter(i=>i.auxilioId!==_amEditId);
+    viejosIds.forEach(vid=>supaDelete('auxMecInsumos',vid));
+    _saveInsumos(_amEditId);
+    _amEditId=null;
+    closeM('mAuxMec');rAuxMec();toast('Auxilio actualizado: '+rec.cod);
+  }else{
+    // CREAR: nuevo registro
+    DB.auxiliosMecanicos.push(rec);
+    syncSheet('saveAuxMec',rec);
+    _saveInsumos(rec.id);
+    closeM('mAuxMec');rAuxMec();toast('Auxilio registrado: '+rec.cod);
+  }
+}
+
+function editAuxMec(id){
+  const r=DB.auxiliosMecanicos.find(x=>x.id===id);if(!r)return;
+  _amEditId=id;
+  openAuxMec();
+  // Sobreescribir código y modo
+  document.getElementById('amCod').value=r.cod||'';
+  document.querySelector('#mAuxMec .mttl').textContent='✏️ Editar Auxilio: '+r.cod;
+  // Tab 0
+  const eqSel=document.getElementById('amEq');if(eqSel&&r.eqId)eqSel.value=r.eqId;
+  document.getElementById('amFecha').value=r.fecha||'';
+  document.getElementById('amHora').value=r.hora||'';
+  document.getElementById('amHorometro').value=r.horometro||'';
+  document.getElementById('amOp').value=r.operador||'';
+  const fSel=document.getElementById('amFrente');if(fSel)fSel.value=r.frente||'';
+  // Tab 1
+  document.getElementById('amTipo').value=r.tipo||'Mecánico';
+  document.getElementById('amTipoInt').value=r.tipoInt||'Correctiva no planificada';
+  document.getElementById('amDesc').value=r.desc||'';
+  document.getElementById('amCausaRaiz').value=r.causaRaiz||'';
+  // Tab 2
+  const mecSel=document.getElementById('amMec');if(mecSel)mecSel.value=r.mec||'';
+  document.getElementById('amNMec').value=r.ayudante||'';
+  document.getElementById('amAccion').value=r.accion||'';
+  document.getElementById('amParada').value=r.tiempoParada||'';
+  document.getElementById('amTraslado').value=r.traslado||'No';
+  document.getElementById('amTrasladoDiv').style.display=r.traslado==='Sí'?'':'none';
+  document.getElementById('amTrasladoDest').value=r.trasladoDest||'';
+  document.getElementById('amEst').value=r.est||'Pendiente';
+  // Tab 3 — insumos
+  document.getElementById('amInsumosBody').innerHTML='';
+  DB.auxMecInsumos.filter(i=>i.auxilioId===id).forEach(ins=>{
+    document.getElementById('amInsumosBody').appendChild((()=>{
+      const ISS='background:var(--panel2);border:1px solid var(--border);border-radius:4px;padding:.25rem .4rem;color:var(--text);font-size:.73rem;width:100%';
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td><input style="${ISS}" value="${ins.desc||''}"></td>
+        <td><input style="${ISS};width:85px" value="${ins.cod||''}"></td>
+        <td><input type="number" style="${ISS};width:65px" step="0.01" min="0" value="${ins.cant||0}"></td>
+        <td><input style="${ISS};width:60px" value="${ins.und||''}"></td>
+        <td><select style="${ISS};width:95px"><option${ins.origen==='Almacén'?' selected':''}>Almacén</option><option${ins.origen==='Campo'?' selected':''}>Campo</option></select></td>
+        <td><button class="btn btn-del btn-sm" onclick="this.closest('tr').remove()" style="padding:.2rem .4rem">✕</button></td>`;
+      return tr;
+    })());
   });
-  closeM('mAuxMec');rAuxMec();toast('Auxilio registrado: '+rec.cod);
+  document.getElementById('amSupervisor').value=r.supervisor||'';
+  document.getElementById('amConforme').checked=!!r.conforme;
+  document.getElementById('amObs').value=r.obs||'';
+}
+function verAuxMec(id){
+  const r=DB.auxiliosMecanicos.find(x=>x.id===id);if(!r)return;
+  const eq=DB.equipos.find(e=>e.id===r.eqId);
+  const ins=DB.auxMecInsumos.filter(i=>i.auxilioId===id);
+  const row=(l,v)=>`<div style="display:flex;gap:.5rem;padding:.3rem 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted2);min-width:160px;font-size:.75rem">${l}</span><span style="font-weight:500">${v||'—'}</span></div>`;
+  const sec=(t)=>`<div style="background:var(--mec);color:#fff;font-size:.7rem;font-weight:700;padding:.25rem .6rem;border-radius:4px;margin:.7rem 0 .3rem;letter-spacing:.05em">${t}</div>`;
+  document.getElementById('auxVerTtl').textContent='🔍 '+r.cod;
+  document.getElementById('auxVerBody').innerHTML=`
+    ${sec('IDENTIFICACIÓN')}
+    ${row('Código',r.cod)}${row('Fecha',r.fecha)}${row('Hora',r.hora)}
+    ${row('Equipo',eq?eq.codigo+' – '+eq.nombre:r.eqId)}
+    ${row('Horómetro/Km',r.horometro!=null?fmtN(r.horometro)+' h':'—')}
+    ${row('Operador',r.operador)}${row('Frente',r.frente)}
+    ${sec('DIAGNÓSTICO')}
+    ${row('Tipo de Falla',r.tipo)}${row('Tipo de Intervención',r.tipoInt)}
+    ${row('Descripción',r.desc)}${row('Causa Raíz',r.causaRaiz)}
+    ${sec('ATENCIÓN')}
+    ${row('Mecánico',r.mec)}${row('Ayudante',r.ayudante)}
+    ${row('Acciones',r.accion)}
+    ${row('T. Parada',r.tiempoParada!=null?fmtN(r.tiempoParada)+' h':'—')}
+    ${row('Traslado',r.traslado+(r.trasladoDest?' → '+r.trasladoDest:''))}
+    ${row('Estado',r.est)}
+    ${sec('INSUMOS Y REPUESTOS')}
+    ${ins.length?`<table style="width:100%;font-size:.75rem;border-collapse:collapse;margin-top:.3rem">
+      <thead><tr style="color:var(--muted2)"><th style="text-align:left;padding:.2rem .4rem">Descripción</th><th>Cód.</th><th>Cant.</th><th>Und.</th><th>Origen</th></tr></thead>
+      <tbody>${ins.map(i=>`<tr style="border-top:1px solid var(--border)"><td style="padding:.25rem .4rem">${i.desc}</td><td class="mono">${i.cod||'—'}</td><td class="mono tr">${i.cant}</td><td>${i.und||'—'}</td><td style="font-size:.7rem">${i.origen}</td></tr>`).join('')}</tbody>
+    </table>`:'<span style="color:var(--muted);font-size:.78rem">Sin insumos registrados</span>'}
+    ${sec('CIERRE')}
+    ${row('Supervisor',r.supervisor)}
+    ${row('Operador conforme',r.conforme?'✅ Sí':'❌ No')}
+    ${row('Observaciones',r.obs)}
+  `;
+  openM('mAuxMecVer');
 }
 
 // ══ PLANNER ══
