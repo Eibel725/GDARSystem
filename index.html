@@ -5000,15 +5000,15 @@ function rEngrase(){
   ].map(k=>`<div style="background:var(--panel);border:1px solid var(--border);border-top:3px solid ${k.c};border-radius:10px;padding:.85rem 1.1rem;flex:1;min-width:150px"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem"><span style="font-size:.67rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted2);font-weight:600">${k.l}</span><span style="font-size:1.3rem;line-height:1;opacity:.75">${k.ic}</span></div><div style="font-size:2.4rem;font-weight:800;color:${k.c};line-height:1;margin-bottom:.25rem">${k.v}</div><div style="font-size:.68rem;color:var(--muted2)">${k.sub}</div></div>`).join('');
   const dayHdrs=Array.from({length:days},(_,i)=>{
     const d=i+1,fecha=`${y}-${pad(m)}-${pad(d)}`;
-    const dow=new Date(fecha+'T12:00:00').getDay(),isWe=dow===0||dow===6;
-    return`<th style="text-align:center;min-width:26px;width:26px;padding:2px 1px;font-size:.62rem;${isWe?'color:#f59e0b;background:rgba(245,158,11,.12)':''}">${d}<div style="font-size:.55rem;opacity:.7">${DN[dow]}</div></th>`;
+    const dow=new Date(fecha+'T12:00:00').getDay(),isSun=dow===0;
+    return`<th style="text-align:center;min-width:26px;width:26px;padding:2px 1px;font-size:.62rem;${isSun?'color:#f59e0b;background:rgba(245,158,11,.12)':''}">${d}<div style="font-size:.55rem;opacity:.7">${DN[dow]}</div></th>`;
   }).join('');
   const rows=DB.equipos.map((eq,idx)=>{
     const cells=Array.from({length:days},(_,i)=>{
       const d=i+1,fecha=`${y}-${pad(m)}-${pad(d)}`;
       const active=DB.engrase.some(r=>r.eqId===eq.id&&r.fecha===fecha);
-      const dow=new Date(fecha+'T12:00:00').getDay(),isWe=dow===0||dow===6;
-      return`<td id="eng-${eq.id}-${fecha}" onclick="toggleEngrase(${eq.id},'${fecha}')" style="text-align:center;cursor:pointer;height:26px;padding:0;border:1px solid var(--border);${active?'background:var(--mec);color:#fff;':''}${isWe&&!active?'background:rgba(245,158,11,.06);':''}" title="${fecha}">${active?'<span style="font-size:.75rem;font-weight:700">×</span>':''}</td>`;
+      const dow=new Date(fecha+'T12:00:00').getDay(),isSun=dow===0;
+      return`<td id="eng-${eq.id}-${fecha}" onclick="toggleEngrase(${eq.id},'${fecha}')" style="text-align:center;cursor:pointer;height:26px;padding:0;border:1px solid var(--border);${active?'background:var(--mec);color:#fff;':''}${isSun&&!active?'background:rgba(245,158,11,.06);':''}" title="${fecha}">${active?'<span style="font-size:.75rem;font-weight:700">×</span>':''}</td>`;
     }).join('');
     const tot=DB.engrase.filter(r=>r.eqId===eq.id&&r.fecha.startsWith(monthStr)).length;
     return`<tr style="border-bottom:1px solid var(--border)">
@@ -5070,15 +5070,15 @@ function printEngrase(){
   const _logoUrl=window.location.href.replace(/[^\/\\]+$/,'')+'09.-ERP/Imagenes/ECOSERMO-LOGO.png';
   const dayHdrs=Array.from({length:days},(_,i)=>{
     const d=i+1,fecha=`${y}-${pad(m)}-${pad(d)}`;
-    const dow=new Date(fecha+'T12:00:00').getDay(),isWe=dow===0||dow===6;
-    return`<th style="text-align:center;width:22px;min-width:22px;padding:2px 0;font-size:7.5px;${isWe?'background:#fef3c7;color:#92400e':'background:#1e3a5f;color:#fff'}">${d}<br><span style="font-size:6.5px">${DN[dow]}</span></th>`;
+    const dow=new Date(fecha+'T12:00:00').getDay(),isSun=dow===0;
+    return`<th style="text-align:center;width:22px;min-width:22px;padding:2px 0;font-size:7.5px;${isSun?'background:#fef3c7;color:#92400e':'background:#1e3a5f;color:#fff'}">${d}<br><span style="font-size:6.5px">${DN[dow]}</span></th>`;
   }).join('');
   const rows=DB.equipos.map((eq,idx)=>{
     const cells=Array.from({length:days},(_,i)=>{
       const d=i+1,fecha=`${y}-${pad(m)}-${pad(d)}`;
       const active=DB.engrase.some(r=>r.eqId===eq.id&&r.fecha===fecha);
-      const dow=new Date(fecha+'T12:00:00').getDay(),isWe=dow===0||dow===6;
-      return`<td style="text-align:center;padding:0;border:1px solid #e2e8f0;height:20px;${active?'background:#044e64;color:#fff;font-weight:700;font-size:9px':''}${isWe&&!active?'background:#fffbeb;':''}">${active?'X':''}</td>`;
+      const dow=new Date(fecha+'T12:00:00').getDay(),isSun=dow===0;
+      return`<td style="text-align:center;padding:0;border:1px solid #e2e8f0;height:20px;${active?'background:#044e64;color:#fff;font-weight:700;font-size:9px':''}${isSun&&!active?'background:#fffbeb;':''}">${active?'X':''}</td>`;
     }).join('');
     const tot=DB.engrase.filter(r=>r.eqId===eq.id&&r.fecha.startsWith(monthStr)).length;
     return`<tr><td style="text-align:center;font-size:8px;padding:2px 3px;border:1px solid #e2e8f0">${idx+1}</td><td style="font-size:7.5px;padding:2px 3px;border:1px solid #e2e8f0;white-space:nowrap">${eq.tipo||'—'}</td><td style="font-size:8px;font-weight:700;padding:2px 5px;border:1px solid #e2e8f0;white-space:nowrap">${eq.nombre}</td><td style="font-size:7.5px;padding:2px 3px;border:1px solid #e2e8f0;font-family:monospace">${eq.placa||'—'}</td>${cells}<td style="text-align:center;font-weight:700;font-size:9px;color:#044e64;padding:2px 4px;border:1px solid #e2e8f0;background:#e0f2fe">${tot||''}</td></tr>`;
