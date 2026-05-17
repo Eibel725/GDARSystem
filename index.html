@@ -4683,7 +4683,7 @@ function gEquipo(){
     ccMantPreventivo:+document.getElementById('eqCcmp').value||null,
     ccMantCorrectivo:+document.getElementById('eqCcmc').value||null,
     proyecto:document.getElementById('eqProy').value||null,
-    ultMant:'—',proxMant:'—'
+    ultMant:null,proxMant:null
   };
   if(_eqEditId!==null){
     const idx=DB.equipos.findIndex(x=>x.id===_eqEditId);
