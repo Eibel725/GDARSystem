@@ -4731,8 +4731,8 @@ function verEquipo(id){
 }
 function editEquipo(id){
   const e=DB.equipos.find(x=>x.id===id);if(!e)return;
-  _eqEditId=id;
-  openEquipo();
+  openEquipo();     // populates dropdowns (resets _eqEditId=null internally)
+  _eqEditId=id;    // restore AFTER openEquipo so gEquipo() sabe que es edición
   document.querySelector('#mEquipo .mttl').textContent='✏️ Editar Equipo: '+e.codigo;
   // Tab 0
   document.getElementById('eqCod').value=e.codigo||'';
@@ -4785,7 +4785,20 @@ function openMant(){
 }
 function rProg(){
   const pen=DB.mantenimientos.filter(m=>m.est==='Programado').length,proc=DB.mantenimientos.filter(m=>m.est==='En Proceso').length,comp=DB.mantenimientos.filter(m=>m.est==='Completado').length;
-  document.getElementById('progKpis').innerHTML=[{l:'Programados',v:pen,c:'#3b82f6'},{l:'En Proceso',v:proc,c:'#f59e0b'},{l:'Completados',v:comp,c:'#10b981'},{l:'Total OT',v:DB.mantenimientos.length,c:'#8b5cf6'}].map(k=>`<div class="kpi" style="--kc:${k.c}"><div class="kpi-lbl">${k.l}</div><div class="kpi-val">${k.v}</div></div>`).join('');
+  const total=DB.mantenimientos.length;
+  document.getElementById('progKpis').innerHTML=[
+    {l:'Programados',v:pen,c:'#3b82f6',ic:'📅',sub:'órdenes pendientes'},
+    {l:'En Proceso',v:proc,c:'#f59e0b',ic:'🔄',sub:'en ejecución'},
+    {l:'Completados',v:comp,c:'#10b981',ic:'✅',sub:'finalizados'},
+    {l:'Total OT',v:total,c:'#8b5cf6',ic:'📋',sub:'órdenes registradas'}
+  ].map(k=>`<div style="background:var(--panel);border:1px solid var(--border);border-top:3px solid ${k.c};border-radius:10px;padding:.85rem 1.1rem;flex:1;min-width:150px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem">
+      <span style="font-size:.67rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted2);font-weight:600">${k.l}</span>
+      <span style="font-size:1.3rem;line-height:1;opacity:.75">${k.ic}</span>
+    </div>
+    <div style="font-size:2.4rem;font-weight:800;color:${k.c};line-height:1;margin-bottom:.25rem">${k.v}</div>
+    <div style="font-size:.68rem;color:var(--muted2)">${k.sub}</div>
+  </div>`).join('');
   const fd=document.getElementById('progFDesde')?document.getElementById('progFDesde').value:'';
   const fh=document.getElementById('progFHasta')?document.getElementById('progFHasta').value:'';
   const rows=DB.mantenimientos.filter(r=>{
