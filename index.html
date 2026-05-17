@@ -4016,8 +4016,8 @@ function exportReqPDF(id){
     +'.ph-rq{font-family:Courier New,monospace;font-size:11px;font-weight:700;color:#d97706;letter-spacing:.08em}'
     +'.ph-right{text-align:right;font-size:7.5px;color:#999;line-height:1.7}'
     /* ── Pie de página de firmas ── */
-    +'.pf{margin-top:32px;page-break-inside:avoid}'
-    +'.pf-sep{border-top:1px solid #ddd;margin-bottom:8px}'
+    +'.pf{padding:6px 0 4px;border-top:2px solid #1e3a6e}'
+    +'.pf-sep{display:none}'
     +'.vb-wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:5px}'
     +'.vb{text-align:center}'
     +'.vb-space{height:38px}'
@@ -4048,7 +4048,16 @@ function exportReqPDF(id){
   body+='<div class=ph-center><div class=ph-title>Requerimiento de Materiales</div><div class=ph-rq>N° '+e(r.num)+'</div></div>';
   body+='<div class=ph-right>Documento de uso interno<br>Generado por GDAR</div>';
   body+='</div></div>';
-  body+='</td></tr></thead><tbody><tr><td>';
+  body+='</td></tr></thead>';
+  // ── tfoot = firmas reales repetidas en cada página ──
+  body+='<tfoot><tr><td>';
+  body+='<div class=pf><div class=pf-sep></div><div class=vb-wrap>';
+  body+='<div class=vb><div class=vb-space></div><div class=vb-line></div><div class=vb-label>V°B° Jefe de Área</div><div class=vb-sub>Firma y sello</div></div>';
+  body+='<div class=vb><div class=vb-space></div><div class=vb-line></div><div class=vb-label>V°B° Jefe de Proy. / Residente</div><div class=vb-sub>Firma y sello</div></div>';
+  body+='<div class=vb><div class=vb-space></div><div class=vb-line></div><div class=vb-label>V°B° Almacén</div><div class=vb-sub>Firma y sello</div></div>';
+  body+='</div></div>';
+  body+='</td></tr></tfoot>';
+  body+='<tbody><tr><td>';
 
   // ── Contenido de página ──
   if(r.proyecto)body+='<div class=proy><div class=lbl>Proyecto'+(r.codProy?' <span style="font-family:monospace;color:#d97706;font-size:10px;margin-left:6px">'+e(r.codProy)+'</span>':'')+'</div><div class=val>'+e(r.proyecto)+'</div></div>';
@@ -4064,12 +4073,6 @@ function exportReqPDF(id){
   body+='<table class=ct><thead><tr><th class=c>#</th><th class=l>Código</th><th class=c>Img.</th><th class=l>Descripción</th><th class=c>Unid.</th><th class=c>Cant.</th><th class=l>Obs.</th><th class=l>T. Costo</th></tr></thead><tbody>'+iRows+'</tbody></table>';
   if(r.obs)body+='<div class=sec>Observaciones</div><div class=obs-box>'+e(r.obs)+'</div>';
   if(comps.length)body+='<div class=sec>Comprobantes Vinculados</div><table class=ct><thead><tr><th class=l>Tipo</th><th class=l>N° Comp.</th><th class=l>Proveedor</th><th class=c>Total S/</th><th class=l>Estado</th></tr></thead><tbody>'+cRows+'</tbody></table>';
-  // ── Firmas al final del documento ──
-  body+='<div class=pf><div class=pf-sep></div><div class=vb-wrap>';
-  body+='<div class=vb><div class=vb-space></div><div class=vb-line></div><div class=vb-label>V°B° Jefe de Área</div><div class=vb-sub>Firma y sello</div></div>';
-  body+='<div class=vb><div class=vb-space></div><div class=vb-line></div><div class=vb-label>V°B° Jefe de Proy. / Residente</div><div class=vb-sub>Firma y sello</div></div>';
-  body+='<div class=vb><div class=vb-space></div><div class=vb-line></div><div class=vb-label>V°B° Almacén</div><div class=vb-sub>Firma y sello</div></div>';
-  body+='</div></div>';
   body+='</td></tr></tbody></table>';
   const S='<'+'/';
   const html='<!DOCTYPE html><html><head><meta charset=utf-8><title>'+e(r.num)+S+'title><style>'+css+S+'style>'+S+'head><body>'+body+S+'body>'+S+'html>';
