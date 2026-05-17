@@ -745,7 +745,7 @@ select option{background:var(--panel2);}
       </div>
     </div>
     <div class="card-body"><div class="tbl-wrap"><table>
-      <thead><tr><th>Código</th><th>Fecha</th><th>Equipo</th><th class="tr">Horóm./Km</th><th>Tipo Falla</th><th>Descripción</th><th>Mecánico</th><th class="tr">T. Parada</th><th>Estado</th><th></th></tr></thead>
+      <thead><tr><th>Código</th><th>Fecha</th><th>Equipo</th><th class="tr">Horóm./Km</th><th>Tipo Falla</th><th>Descripción</th><th>Mecánico</th><th class="tr">T. Parada</th><th>Estado</th><th class="tr">Insumos</th><th></th></tr></thead>
       <tbody id="tbAuxMec"></tbody>
     </table></div></div>
   </div>
@@ -1998,7 +1998,8 @@ const SUPA_TABLES={
   mantenimientos:'mantenimientos',planner:'planner',facturas:'facturas',
   costos:'costos',frentesTrabajo:'frentes_trabajo',tipoMaterial:'tipo_material',
   tramos:'tramos',catalogoItems:'materiales',unidades:'unidades',
-  asistencia:'asistencia',proyectos:'proyectos',auxiliosMecanicos:'auxilios_mecanicos'
+  asistencia:'asistencia',proyectos:'proyectos',auxiliosMecanicos:'auxilios_mecanicos',
+  auxMecInsumos:'aux_mec_insumos'
 };
 
 const ACTION_MAP={
@@ -2012,7 +2013,7 @@ const ACTION_MAP={
   saveTipoMaterial:'tipoMaterial',saveTramo:'tramos',
   saveCatalogo:'catalogoItems',saveRequerimiento:'requerimientos',
   saveFacturaPago:'facturasPago',saveAsistencia:'asistencia',saveProyecto:'proyectos',
-  saveAuxMec:'auxiliosMecanicos'
+  saveAuxMec:'auxiliosMecanicos',saveAuxMecInsumo:'auxMecInsumos'
 };
 
 async function supaUpsert(dbKey,record){
@@ -2110,7 +2111,7 @@ async function loadSheetsData(){
       combustible:'comb',supervision:'super',incidentes:'inc',petar:'pet',
       ambiental:'amb',equipos:'eq',mantenimientos:'mant',planner:'plan',
       facturas:'fact',costos:'cost',frentesTrabajo:'ft',tipoMaterial:'tm',
-      tramos:'tr',catalogoItems:'cat',facturasPago:'fpago',proyectos:'proy',auxiliosMecanicos:'auxMec'};
+      tramos:'tr',catalogoItems:'cat',facturasPago:'fpago',proyectos:'proy',auxiliosMecanicos:'auxMec',auxMecInsumos:'auxMecIns'};
     let loaded=false;
     results.forEach(({dbKey,data,error})=>{
       if(!error&&data&&data.length>0){
@@ -2232,8 +2233,8 @@ const DB={
   almacen:[],requerimientos:[],facturasPago:[],combustible:[],supervision:[],
   incidentes:[],petar:[],ambiental:[],equipos:[],partes:[],mantenimientos:[],
   planner:[],facturas:[],costos:[],frentesTrabajo:[],tipoMaterial:[],tramos:[],
-  catalogoItems:[],unidades:[],asistencia:[],proyectos:[],auxiliosMecanicos:[],
-  nx:{personal:1,social:1,res:1,ali:1,hosp:1,lav:1,alm:1,comb:1,super:1,inc:1,pet:1,amb:1,eq:1,mant:1,plan:1,fact:1,cost:1,ft:1,tm:1,tr:1,req:1,fpago:1,cat:1,und:1,proy:1,auxMec:1}
+  catalogoItems:[],unidades:[],asistencia:[],proyectos:[],auxiliosMecanicos:[],auxMecInsumos:[],
+  nx:{personal:1,social:1,res:1,ali:1,hosp:1,lav:1,alm:1,comb:1,super:1,inc:1,pet:1,amb:1,eq:1,mant:1,plan:1,fact:1,cost:1,ft:1,tm:1,tr:1,req:1,fpago:1,cat:1,und:1,proy:1,auxMec:1,auxMecIns:1}
 };
 
 // ══ STATE ══
@@ -4737,6 +4738,7 @@ function rAuxMec(){
       <td style="font-size:.78rem">${r.mec||'—'}</td>
       <td class="mono tr">${r.tiempoParada!=null?fmtN(r.tiempoParada)+' h':'—'}</td>
       <td>${bge(r.est)}</td>
+      <td style="font-size:.72rem;color:var(--muted2)">${DB.auxMecInsumos.filter(i=>i.auxilioId===r.id).length||'—'}</td>
       <td><button class="btn btn-del btn-sm" onclick="del('auxiliosMecanicos',${r.id})">🗑</button></td>
     </tr>`;
   }).join('');
@@ -4790,13 +4792,18 @@ function gAuxMec(){
     traslado:document.getElementById('amTraslado').value,
     trasladoDest:document.getElementById('amTrasladoDest').value.trim()||null,
     est:document.getElementById('amEst').value,
-    insumos:JSON.stringify(amGetInsumos()),
     supervisor:document.getElementById('amSupervisor').value.trim()||null,
     conforme:document.getElementById('amConforme').checked,
     obs:document.getElementById('amObs').value.trim()||null,
   };
   DB.auxiliosMecanicos.push(rec);
   syncSheet('saveAuxMec',rec);
+  // Guardar insumos como filas independientes
+  amGetInsumos().forEach(ins=>{
+    const insRec={id:nid('auxMecIns'),auxilioId:rec.id,desc:ins.desc,cod:ins.cod||null,cant:ins.cant,und:ins.und||null,origen:ins.origen};
+    DB.auxMecInsumos.push(insRec);
+    syncSheet('saveAuxMecInsumo',insRec);
+  });
   closeM('mAuxMec');rAuxMec();toast('Auxilio registrado: '+rec.cod);
 }
 
@@ -5406,6 +5413,8 @@ function del(t,id){
   const _prevRqRef=_prevRec&&_prevRec.rqRef?_prevRec.rqRef:null;
   DB[t]=DB[t].filter(r=>r.id!==id);
   supaDelete(t,id);
+  // Limpiar insumos relacionados al borrar un auxilio (Supabase tiene CASCADE)
+  if(t==='auxiliosMecanicos')DB.auxMecInsumos=DB.auxMecInsumos.filter(r=>r.auxilioId!==id);
   // Recalcular estado del RQ si se eliminó una entrada de almacén vinculada
   if(t==='almacen'&&_prevRqRef)_autoUpdateRqEst(_prevRqRef);
   renderPage(AP);toast('Eliminado');
