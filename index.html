@@ -725,9 +725,14 @@ select option{background:var(--panel2);}
   <div class="kpi-row" id="progKpis"></div>
   <div class="card">
     <div class="card-head"><span class="card-title">Órdenes de Mantenimiento</span>
-      <div class="card-head-right">
+      <div class="card-head-right" style="flex-wrap:wrap;gap:.4rem">
+        <div style="display:flex;align-items:center;gap:.35rem;font-size:.74rem;color:var(--muted2)">
+          <span>Desde</span><input type="date" id="progFDesde" style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:.28rem .5rem;color:var(--text);font-size:.73rem" oninput="rProg()">
+          <span>Hasta</span><input type="date" id="progFHasta" style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:.28rem .5rem;color:var(--text);font-size:.73rem" oninput="rProg()">
+          <button class="btn btn-out btn-sm" title="Limpiar fechas" onclick="document.getElementById('progFDesde').value='';document.getElementById('progFHasta').value='';rProg()" style="padding:.25rem .5rem;font-size:.7rem">✕</button>
+        </div>
         <div class="search-wrap"><span>🔍</span><input class="search-input" placeholder="Buscar..." oninput="flt(this,'tbProg')"></div>
-        <button class="btn btn-a" style="--ba:var(--mec)" onclick="openM('mMant')">＋ Programar</button>
+        <button class="btn btn-a" style="--ba:var(--mec)" onclick="openMant()">＋ Programar</button>
       </div>
     </div>
     <div class="card-body"><div class="tbl-wrap"><table>
@@ -1539,8 +1544,15 @@ select option{background:var(--panel2);}
 </div></div>
 
 <!-- Mantenimiento Modal -->
+<!-- Modal Ver Mantenimiento -->
+<div class="mo" id="mMantVer"><div class="modal" style="max-width:660px">
+  <div class="mh"><span class="mttl" id="mantVerTtl">🔍 Detalle OT</span><button class="mx" onclick="closeM('mMantVer')">✕</button></div>
+  <div class="mb" id="mantVerBody" style="font-size:.83rem"></div>
+  <div class="mf"><button class="btn btn-out" onclick="closeM('mMantVer')">Cerrar</button></div>
+</div></div>
+
 <div class="mo" id="mMant"><div class="modal">
-  <div class="mh"><span class="mttl">Programar Mantenimiento</span><button class="mx" onclick="closeM('mMant')">✕</button></div>
+  <div class="mh"><span class="mttl" id="mMantTtl">Programar Mantenimiento</span><button class="mx" onclick="closeM('mMant')">✕</button></div>
   <div class="mb"><div class="fg-grid">
     <div class="fg"><label>OT N°</label><input id="otN" placeholder="OT-2026-001"></div>
     <div class="fg"><label>Equipo</label><select id="otEq"></select></div>
@@ -4761,16 +4773,98 @@ function editEquipo(id){
   document.getElementById('eqCcmp').value=e.ccMantPreventivo||'';
   document.getElementById('eqCcmc').value=e.ccMantCorrectivo||'';
 }
+let _mantEditId=null;
+function openMant(){
+  _mantEditId=null;
+  document.getElementById('mMantTtl').textContent='Programar Mantenimiento';
+  ['otN','otDe','otFp','otFe','otHs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const es=document.getElementById('otEs');if(es)es.value='Programado';
+  openM('mMant');
+}
 function rProg(){
   const pen=DB.mantenimientos.filter(m=>m.est==='Programado').length,proc=DB.mantenimientos.filter(m=>m.est==='En Proceso').length,comp=DB.mantenimientos.filter(m=>m.est==='Completado').length;
   document.getElementById('progKpis').innerHTML=[{l:'Programados',v:pen,c:'#3b82f6'},{l:'En Proceso',v:proc,c:'#f59e0b'},{l:'Completados',v:comp,c:'#10b981'},{l:'Total OT',v:DB.mantenimientos.length,c:'#8b5cf6'}].map(k=>`<div class="kpi" style="--kc:${k.c}"><div class="kpi-lbl">${k.l}</div><div class="kpi-val">${k.v}</div></div>`).join('');
-  document.getElementById('tbProg').innerHTML=DB.mantenimientos.map(r=>{
+  const fd=document.getElementById('progFDesde')?document.getElementById('progFDesde').value:'';
+  const fh=document.getElementById('progFHasta')?document.getElementById('progFHasta').value:'';
+  const rows=DB.mantenimientos.filter(r=>{
+    if(fd&&r.fp&&r.fp<fd)return false;
+    if(fh&&r.fp&&r.fp>fh)return false;
+    return true;
+  });
+  document.getElementById('tbProg').innerHTML=rows.map(r=>{
     const eq=DB.equipos.find(e=>e.id===r.eqId);
     const proy=eq?eq.proyecto||'—':'—';
-    return`<tr><td class="mono" style="color:var(--mec)">${r.ot}</td><td>${eq?eq.codigo+' '+eq.nombre.split(' ')[1]:''}</td><td><span class="badge b-purple">${r.tipo}</span></td><td>${r.desc}</td><td>${r.mec}</td><td class="mono">${r.fp}</td><td class="mono">${r.fe||'—'}</td><td class="mono tr">${fmtN(r.hs)}</td><td>${bge(r.est)}</td><td><span class="mono" style="font-size:.72rem;color:#a78bfa">${proy}</span></td><td><button class="btn btn-del btn-sm" onclick="del('mantenimientos',${r.id})">🗑</button></td></tr>`;
+    return`<tr>
+      <td class="mono" style="color:var(--mec)">${r.ot}</td>
+      <td>${eq?eq.codigo+' '+eq.nombre.split(' ').slice(0,2).join(' '):''}</td>
+      <td><span class="badge b-purple" style="font-size:.65rem">${r.tipo}</span></td>
+      <td style="font-size:.8rem">${r.desc}</td>
+      <td style="font-size:.8rem">${r.mec}</td>
+      <td class="mono">${r.fp}</td>
+      <td class="mono">${r.fe||'—'}</td>
+      <td class="mono tr">${fmtN(r.hs)}</td>
+      <td>${bge(r.est)}</td>
+      <td><span class="mono" style="font-size:.72rem;color:#a78bfa">${proy}</span></td>
+      <td style="display:flex;gap:.3rem">
+        <button class="btn btn-out btn-sm" title="Ver detalle" onclick="verMant(${r.id})" style="color:#3b82f6;border-color:#3b82f660">👁</button>
+        <button class="btn btn-out btn-sm" title="Editar" onclick="editMant(${r.id})" style="color:#f59e0b;border-color:#f59e0b60">✏️</button>
+        <button class="btn btn-del btn-sm" onclick="del('mantenimientos',${r.id})">🗑</button>
+      </td>
+    </tr>`;
   }).join('');
 }
-function gMant(){const eqId=+document.getElementById('otEq').value;if(!eqId){toast('Seleccione equipo',true);return;}DB.mantenimientos.push({id:nid('mant'),ot:document.getElementById('otN').value||`OT-2026-${String(DB.mantenimientos.length+1).padStart(3,'0')}`,eqId,tipo:document.getElementById('otTi').value,desc:document.getElementById('otDe').value,mec:document.getElementById('otMec').value,fp:document.getElementById('otFp').value||today(),fe:document.getElementById('otFe').value,hs:+document.getElementById('otHs').value||0,est:document.getElementById('otEs').value});syncSheet('saveMantenimiento',DB.mantenimientos[DB.mantenimientos.length-1]);closeM('mMant');rProg();toast('Mantenimiento programado');}
+function verMant(id){
+  const r=DB.mantenimientos.find(x=>x.id===id);if(!r)return;
+  const eq=DB.equipos.find(e=>e.id===r.eqId);
+  const proy=eq?eq.proyecto||'—':'—';
+  document.getElementById('mantVerTtl').textContent=`🔍 ${r.ot}`;
+  document.getElementById('mantVerBody').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem 1.2rem">
+      <div><span style="color:var(--muted2);font-size:.72rem">OT N°</span><div class="mono" style="color:var(--mec);font-size:.95rem;font-weight:700">${r.ot}</div></div>
+      <div><span style="color:var(--muted2);font-size:.72rem">Estado</span><div style="margin-top:.15rem">${bge(r.est)}</div></div>
+      <div><span style="color:var(--muted2);font-size:.72rem">Equipo</span><div>${eq?`<span class="mono" style="color:var(--mec)">${eq.codigo}</span> ${eq.nombre}`:'—'}</div></div>
+      <div><span style="color:var(--muted2);font-size:.72rem">Proyecto</span><div class="mono" style="color:#a78bfa">${proy}</div></div>
+      <div><span style="color:var(--muted2);font-size:.72rem">Tipo Mantenimiento</span><div><span class="badge b-purple" style="font-size:.65rem">${r.tipo}</span></div></div>
+      <div><span style="color:var(--muted2);font-size:.72rem">Mecánico Responsable</span><div>${r.mec||'—'}</div></div>
+      <div style="grid-column:1/-1"><span style="color:var(--muted2);font-size:.72rem">Descripción del Trabajo</span><div style="margin-top:.2rem;padding:.5rem .7rem;background:var(--panel2);border-radius:6px;line-height:1.5">${r.desc||'—'}</div></div>
+      <div><span style="color:var(--muted2);font-size:.72rem">F. Programada</span><div class="mono">${r.fp||'—'}</div></div>
+      <div><span style="color:var(--muted2);font-size:.72rem">F. Ejecución Real</span><div class="mono">${r.fe||'—'}</div></div>
+      <div><span style="color:var(--muted2);font-size:.72rem">Hs / Km Programado</span><div class="mono">${fmtN(r.hs)} h</div></div>
+    </div>`;
+  openM('mMantVer');
+}
+function editMant(id){
+  const r=DB.mantenimientos.find(x=>x.id===id);if(!r)return;
+  _mantEditId=id;
+  document.getElementById('mMantTtl').textContent='Editar OT';
+  document.getElementById('otN').value=r.ot||'';
+  const eq=document.getElementById('otEq');if(eq)eq.value=r.eqId||'';
+  const ti=document.getElementById('otTi');if(ti)ti.value=r.tipo||'';
+  document.getElementById('otDe').value=r.desc||'';
+  const mc=document.getElementById('otMec');if(mc)mc.value=r.mec||'';
+  document.getElementById('otFp').value=r.fp||'';
+  document.getElementById('otFe').value=r.fe||'';
+  document.getElementById('otHs').value=r.hs||0;
+  const es=document.getElementById('otEs');if(es)es.value=r.est||'Programado';
+  openM('mMant');
+}
+function gMant(){
+  const eqId=+document.getElementById('otEq').value;
+  if(!eqId){toast('Seleccione equipo',true);return;}
+  const data={ot:document.getElementById('otN').value||`OT-${new Date().getFullYear()}-${String(DB.mantenimientos.length+1).padStart(3,'0')}`,eqId,tipo:document.getElementById('otTi').value,desc:document.getElementById('otDe').value,mec:document.getElementById('otMec').value,fp:document.getElementById('otFp').value||today(),fe:document.getElementById('otFe').value||null,hs:+document.getElementById('otHs').value||0,est:document.getElementById('otEs').value};
+  if(_mantEditId!==null){
+    const idx=DB.mantenimientos.findIndex(x=>x.id===_mantEditId);
+    if(idx>-1){DB.mantenimientos[idx]={...DB.mantenimientos[idx],...data,id:_mantEditId};syncSheet('saveMantenimiento',DB.mantenimientos[idx]);}
+    _mantEditId=null;
+    document.getElementById('mMantTtl').textContent='Programar Mantenimiento';
+    closeM('mMant');rProg();toast('OT actualizada');
+  }else{
+    const rec={id:nid('mant'),...data};
+    DB.mantenimientos.push(rec);
+    syncSheet('saveMantenimiento',rec);
+    closeM('mMant');rProg();toast('Mantenimiento programado');
+  }
+}
 
 // ══ AUXILIOS MECÁNICOS ══
 let _amTab=0,_amEditId=null;
