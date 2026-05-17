@@ -2059,9 +2059,9 @@ async function supaUpsert(dbKey,record){
 async function supaDelete(dbKey,id){
   const table=SUPA_TABLES[dbKey];if(!table)return;
   try{
-    const {error}=await supa.from(table).delete().eq('id',id);
-    if(error)console.warn('[Supabase delete]',table,error.message);
-  }catch(e){console.warn('[Supabase]',e);}
+    const {error}=await supa.from(table).delete().eq('id',+id);
+    if(error){console.warn('[Supabase delete]',table,error.message);toast('Error al eliminar: '+error.message,true);}
+  }catch(e){console.warn('[Supabase]',e);toast('Error al eliminar: '+e.message,true);}
 }
 
 function syncSheet(action,data){
@@ -4918,8 +4918,6 @@ function printProgGantt(){
 .hdr-logo{flex:0 0 auto}.hdr-logo img{height:52px;object-fit:contain}
 .hdr-mid{flex:1;text-align:center}.hdr-mid h1{font-size:15px;color:#1e3a5f;margin:0 0 2px;font-weight:700}.hdr-mid p{font-size:9px;color:#64748b;margin:0}
 .hdr-info{flex:0 0 auto;text-align:right;font-size:8.5px;color:#94a3b8}
-.kpis{display:flex;gap:10px;margin-bottom:10px}.kpi{border-left:3px solid;padding:5px 10px;background:#f8fafc;border-radius:3px}
-.kl{font-size:8px;color:#64748b;text-transform:uppercase}.kv{font-size:17px;font-weight:700}
 table{width:100%;border-collapse:collapse}th{background:#1e3a5f;color:#fff;padding:4px 6px;text-align:left;font-size:9px}
 td{border:1px solid #e2e8f0;padding:3px 5px;vertical-align:middle}tr:nth-child(even) td{background:#f8fafc}
 .gantt td{height:22px}.sec{font-size:11px;font-weight:700;color:#1e3a5f;margin:10px 0 4px;border-bottom:2px solid #1e3a5f;padding-bottom:3px}
@@ -4932,11 +4930,15 @@ td{border:1px solid #e2e8f0;padding:3px 5px;vertical-align:middle}tr:nth-child(e
   <div class="hdr-mid"><h1>PROGRAMACIÓN DE MANTENIMIENTO</h1><p>ECOSERMO – Sistema de Control de Mantenimiento Mecánico – GDAR</p></div>
   <div class="hdr-info"><div style="font-weight:700;color:#1e3a5f;font-size:10px">Semana N° ${semana}</div><div>${desde} → ${hasta}</div><div>${rows.length} orden(es)</div><div style="margin-top:3px">Generado: ${new Date().toLocaleString('es-PE')}</div></div>
 </div>
-<div class="kpis">
-  <div class="kpi" style="border-color:#3b82f6"><div class="kl">Programados</div><div class="kv" style="color:#3b82f6">${rows.filter(r=>r.est==='Programado').length}</div></div>
-  <div class="kpi" style="border-color:#f59e0b"><div class="kl">En Proceso</div><div class="kv" style="color:#f59e0b">${rows.filter(r=>r.est==='En Proceso').length}</div></div>
-  <div class="kpi" style="border-color:#10b981"><div class="kl">Completados</div><div class="kv" style="color:#10b981">${rows.filter(r=>r.est==='Completado').length}</div></div>
-  <div class="kpi" style="border-color:#9ca3af"><div class="kl">Postergados</div><div class="kv" style="color:#9ca3af">${rows.filter(r=>r.est==='Postergado').length}</div></div>
+<div style="margin-bottom:10px">
+  <div style="display:inline-block;border:1px solid #dbeafe;border-top:3px solid #3b82f6;border-radius:8px;padding:.7rem 1.4rem;min-width:180px;background:#f0f6ff">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.4rem">
+      <span style="font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:#64748b;font-weight:600">Órdenes Programadas</span>
+      <span style="font-size:1.2rem;opacity:.7">📅</span>
+    </div>
+    <div style="font-size:2.4rem;font-weight:800;color:#3b82f6;line-height:1;margin-bottom:.2rem">${rows.length}</div>
+    <div style="font-size:.68rem;color:#64748b">semana N° ${semana} · ${desde} → ${hasta}</div>
+  </div>
 </div>
 <div class="sec">Detalle de Órdenes</div>
 <table><thead><tr><th>OT</th><th>Equipo</th><th>Tipo</th><th>Descripción</th><th>Mecánico</th><th>F. Prog.</th><th>F. Ejec.</th><th>Hs/Km</th><th>Estado</th><th>Proyecto</th></tr></thead><tbody>${summaryRows}</tbody></table>
