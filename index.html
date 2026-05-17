@@ -1574,7 +1574,7 @@ select option{background:var(--panel2);}
     <!-- Tab 2: Atención -->
     <div class="fg-grid" id="amP2" style="display:none">
       <div class="fg"><label>Mecánico Responsable</label><select id="amMec"><option value="">— Seleccionar —</option></select></div>
-      <div class="fg"><label>N° Mecánicos Adicionales</label><input id="amNMec" type="number" min="0" value="0"></div>
+      <div class="fg"><label>Ayudante Mecánico</label><input id="amNMec" placeholder="Nombre del ayudante"></div>
       <div class="fg" style="grid-column:1/-1"><label>Acciones Realizadas</label><textarea id="amAccion" rows="3" placeholder="Trabajos realizados para solucionar el problema..."></textarea></div>
       <div class="fg"><label>T. Parada (horas)</label><input id="amParada" type="number" step="0.5" min="0" placeholder="0.0"></div>
       <div class="fg"><label>Requirió Traslado</label><select id="amTraslado" onchange="document.getElementById('amTrasladoDiv').style.display=this.value==='Sí'?'':'none'"><option value="No">No</option><option value="Sí">Sí</option></select></div>
@@ -4754,7 +4754,7 @@ function openAuxMec(){
   document.getElementById('amCod').value=`AUX-${yr}-${String(DB.auxiliosMecanicos.length+1).padStart(4,'0')}`;
   document.getElementById('amFecha').value=today();
   ['amHora','amOp','amHorometro','amDesc','amAccion','amParada','amObs','amNMec','amTrasladoDest','amSupervisor'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  document.getElementById('amNMec').value='0';
+  document.getElementById('amNMec').value='';
   document.getElementById('amTipo').value='Mecánico';
   document.getElementById('amTipoInt').value='Correctiva no planificada';
   document.getElementById('amCausaRaiz').value='';
@@ -4784,7 +4784,7 @@ function gAuxMec(){
     desc:document.getElementById('amDesc').value.trim(),
     causaRaiz:document.getElementById('amCausaRaiz').value||null,
     mec:document.getElementById('amMec').value||null,
-    nMec:+document.getElementById('amNMec').value||0,
+    ayudante:document.getElementById('amNMec').value.trim()||null,
     accion:document.getElementById('amAccion').value.trim()||null,
     tiempoParada:parseFloat(document.getElementById('amParada').value)||null,
     traslado:document.getElementById('amTraslado').value,
