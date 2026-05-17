@@ -713,7 +713,7 @@ select option{background:var(--panel2);}
       </div>
     </div>
     <div class="card-body"><div class="tbl-wrap"><table>
-      <thead><tr><th>Código</th><th>Equipo</th><th>Tipo</th><th>Marca</th><th>Modelo</th><th>Año</th><th>Placa</th><th class="tr">Horómetro</th><th>Estado</th><th>Proyecto</th><th></th></tr></thead>
+      <thead><tr><th>Código</th><th>Equipo</th><th>Tipo</th><th>Año</th><th>Placa</th><th class="tr">Horómetro</th><th>Estado</th><th>Proyecto</th><th></th></tr></thead>
       <tbody id="tbMaster"></tbody>
     </table></div></div>
   </div>
@@ -1572,7 +1572,7 @@ select option{background:var(--panel2);}
 <div class="mo" id="mMant"><div class="modal">
   <div class="mh"><span class="mttl" id="mMantTtl">Programar Mantenimiento</span><button class="mx" onclick="closeM('mMant')">✕</button></div>
   <div class="mb"><div class="fg-grid">
-    <div class="fg"><label>OT N°</label><input id="otN" placeholder="OT-2026-001"></div>
+    <div class="fg"><label>OT N°</label><input id="otN" readonly style="opacity:.7;cursor:default;background:var(--panel2)"></div>
     <div class="fg"><label>Equipo</label><select id="otEq"></select></div>
     <div class="fg"><label>Tipo Mantenimiento</label><select id="otTi"><option>PM1 – 250 horas</option><option>PM2 – 500 horas</option><option>PM3 – 1,000 horas</option><option>PM4 – 2,000 horas</option><option>Correctivo</option><option>Predictivo</option><option>Reparación Mayor</option></select></div>
     <div class="fg" style="grid-column:1/-1"><label>Descripción del Trabajo</label><input id="otDe" placeholder="Cambio de aceite, filtros, revisión general..."></div>
@@ -4625,8 +4625,6 @@ function rMaster(){
     <td class="mono" style="color:var(--mec)">${e.codigo}</td>
     <td><strong>${e.nombre}</strong></td>
     <td><span class="badge b-purple" style="font-size:.65rem">${e.tipo}</span></td>
-    <td style="font-size:.8rem">${e.marca||'—'}</td>
-    <td style="font-size:.8rem">${e.modelo||'—'}</td>
     <td class="mono">${e.anio||'—'}</td>
     <td class="mono">${e.placa||'—'}</td>
     <td class="tr mono">${fmtN(e.hr)} h</td>
@@ -4794,10 +4792,16 @@ function editEquipo(id){
   document.getElementById('eqCcmc').value=e.ccMantCorrectivo||'';
 }
 let _mantEditId=null;
+function _genOT(){
+  const yy=String(new Date().getFullYear()).slice(-2);
+  const seq=String(DB.mantenimientos.length+1).padStart(3,'0');
+  return`OT-${seq}-${yy}`;
+}
 function openMant(){
   _mantEditId=null;
   document.getElementById('mMantTtl').textContent='Programar Mantenimiento';
-  ['otN','otDe','otFp','otFe','otHs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['otDe','otFp','otFe','otHs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('otN').value=_genOT();
   const es=document.getElementById('otEs');if(es)es.value='Programado';
   openM('mMant');
 }
@@ -4884,7 +4888,7 @@ function editMant(id){
 function gMant(){
   const eqId=+document.getElementById('otEq').value;
   if(!eqId){toast('Seleccione equipo',true);return;}
-  const data={ot:document.getElementById('otN').value||`OT-${new Date().getFullYear()}-${String(DB.mantenimientos.length+1).padStart(3,'0')}`,eqId,tipo:document.getElementById('otTi').value,desc:document.getElementById('otDe').value,mec:document.getElementById('otMec').value,fp:document.getElementById('otFp').value||today(),fe:document.getElementById('otFe').value||null,hs:+document.getElementById('otHs').value||0,est:document.getElementById('otEs').value};
+  const data={ot:document.getElementById('otN').value||_genOT(),eqId,tipo:document.getElementById('otTi').value,desc:document.getElementById('otDe').value,mec:document.getElementById('otMec').value,fp:document.getElementById('otFp').value||today(),fe:document.getElementById('otFe').value||null,hs:+document.getElementById('otHs').value||0,est:document.getElementById('otEs').value};
   if(_mantEditId!==null){
     const idx=DB.mantenimientos.findIndex(x=>x.id===_mantEditId);
     if(idx>-1){DB.mantenimientos[idx]={...DB.mantenimientos[idx],...data,id:_mantEditId};syncSheet('saveMantenimiento',DB.mantenimientos[idx]);}
@@ -5003,8 +5007,6 @@ function rEngrase(){
       <td style="text-align:center;font-size:.7rem;color:var(--muted2);padding:3px 5px;white-space:nowrap">${idx+1}</td>
       <td style="padding:3px 5px;white-space:nowrap"><span class="badge b-purple" style="font-size:.58rem">${eq.tipo||'—'}</span></td>
       <td style="padding:3px 8px;white-space:nowrap;font-size:.78rem"><strong>${eq.nombre}</strong></td>
-      <td style="padding:3px 5px;font-size:.72rem;white-space:nowrap">${eq.marca||'—'}</td>
-      <td style="padding:3px 5px;font-size:.72rem;white-space:nowrap">${eq.modelo||'—'}</td>
       <td class="mono" style="padding:3px 5px;font-size:.7rem;white-space:nowrap">${eq.placa||'—'}</td>
       ${cells}
       <td id="eng-tot-${eq.id}" style="text-align:center;font-weight:700;font-size:.85rem;color:var(--mec);padding:3px 6px;white-space:nowrap;background:rgba(4,78,100,.08)">${tot||''}</td>
@@ -5017,13 +5019,11 @@ function rEngrase(){
         <th style="padding:5px 6px;font-size:.68rem;white-space:nowrap;min-width:30px">N°</th>
         <th style="padding:5px 6px;font-size:.68rem;white-space:nowrap;min-width:110px">Tipo</th>
         <th style="padding:5px 8px;font-size:.68rem;white-space:nowrap;min-width:180px">Descripción del Equipo</th>
-        <th style="padding:5px 6px;font-size:.68rem;white-space:nowrap;min-width:70px">Marca</th>
-        <th style="padding:5px 6px;font-size:.68rem;white-space:nowrap;min-width:65px">Modelo</th>
         <th style="padding:5px 6px;font-size:.68rem;white-space:nowrap;min-width:65px">Placa</th>
         <th colspan="${days}" style="text-align:center;padding:5px;font-size:.72rem;background:rgba(4,78,100,.2);color:var(--mec);font-weight:700;letter-spacing:.05em">${mesNombre} ${y}</th>
         <th style="padding:5px 6px;font-size:.68rem;text-align:center;white-space:nowrap;min-width:45px;background:rgba(4,78,100,.12)">Total</th>
       </tr>
-      <tr style="background:var(--panel2)">${'<th></th>'.repeat(6)}${dayHdrs}<th></th></tr>
+      <tr style="background:var(--panel2)">${'<th></th>'.repeat(4)}${dayHdrs}<th></th></tr>
     </thead>
     <tbody>${rows}</tbody>`;
 }
@@ -5073,7 +5073,7 @@ function printEngrase(){
       return`<td style="text-align:center;padding:0;border:1px solid #e2e8f0;height:20px;${active?'background:#044e64;color:#fff;font-weight:700;font-size:9px':''}${isWe&&!active?'background:#fffbeb;':''}">${active?'X':''}</td>`;
     }).join('');
     const tot=DB.engrase.filter(r=>r.eqId===eq.id&&r.fecha.startsWith(monthStr)).length;
-    return`<tr><td style="text-align:center;font-size:8px;padding:2px 3px;border:1px solid #e2e8f0">${idx+1}</td><td style="font-size:7.5px;padding:2px 3px;border:1px solid #e2e8f0;white-space:nowrap">${eq.tipo||'—'}</td><td style="font-size:8px;font-weight:700;padding:2px 5px;border:1px solid #e2e8f0;white-space:nowrap">${eq.nombre}</td><td style="font-size:7.5px;padding:2px 3px;border:1px solid #e2e8f0">${eq.marca||'—'}</td><td style="font-size:7.5px;padding:2px 3px;border:1px solid #e2e8f0">${eq.modelo||'—'}</td><td style="font-size:7.5px;padding:2px 3px;border:1px solid #e2e8f0;font-family:monospace">${eq.placa||'—'}</td>${cells}<td style="text-align:center;font-weight:700;font-size:9px;color:#044e64;padding:2px 4px;border:1px solid #e2e8f0;background:#e0f2fe">${tot||''}</td></tr>`;
+    return`<tr><td style="text-align:center;font-size:8px;padding:2px 3px;border:1px solid #e2e8f0">${idx+1}</td><td style="font-size:7.5px;padding:2px 3px;border:1px solid #e2e8f0;white-space:nowrap">${eq.tipo||'—'}</td><td style="font-size:8px;font-weight:700;padding:2px 5px;border:1px solid #e2e8f0;white-space:nowrap">${eq.nombre}</td><td style="font-size:7.5px;padding:2px 3px;border:1px solid #e2e8f0;font-family:monospace">${eq.placa||'—'}</td>${cells}<td style="text-align:center;font-weight:700;font-size:9px;color:#044e64;padding:2px 4px;border:1px solid #e2e8f0;background:#e0f2fe">${tot||''}</td></tr>`;
   }).join('');
   const elaborador=DB.personal&&DB.personal[0]?DB.personal[0].nombre:'';
   const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Engrase ${mesNombre} ${y}</title>
@@ -5099,7 +5099,7 @@ td{border:1px solid #e2e8f0;vertical-align:middle}tr:nth-child(even) td{backgrou
 </div>
 <table>
   <thead>
-    <tr><th rowspan="2">N°</th><th rowspan="2" style="min-width:90px">Tipo / Área</th><th rowspan="2" style="min-width:150px">Descripción del Equipo</th><th rowspan="2" style="min-width:70px">Marca</th><th rowspan="2" style="min-width:55px">Modelo</th><th rowspan="2" style="min-width:55px">Placa</th><th colspan="${days}" style="text-align:center;background:#044e64">${mesNombre} ${y}</th><th rowspan="2" style="background:#e0f2fe;color:#044e64;min-width:35px">Total</th></tr>
+    <tr><th rowspan="2">N°</th><th rowspan="2" style="min-width:90px">Tipo / Área</th><th rowspan="2" style="min-width:150px">Descripción del Equipo</th><th rowspan="2" style="min-width:55px">Placa</th><th colspan="${days}" style="text-align:center;background:#044e64">${mesNombre} ${y}</th><th rowspan="2" style="background:#e0f2fe;color:#044e64;min-width:35px">Total</th></tr>
     <tr>${dayHdrs}</tr>
   </thead>
   <tbody>${rows}</tbody>
