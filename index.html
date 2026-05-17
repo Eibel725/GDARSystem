@@ -2008,7 +2008,7 @@ function toSnake(obj){
   for(const [k,v] of Object.entries(obj)){
     if(k==='items'||k==='pdfData')continue;
     const key=_RENAME_TO[k]||k.replace(/([A-Z])/g,m=>'_'+m.toLowerCase());
-    r[key]=(v==='')?null:v;
+    r[key]=(v===''||v==='—')?null:v;
   }
   return r;
 }
