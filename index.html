@@ -2059,9 +2059,10 @@ async function supaUpsert(dbKey,record){
 async function supaDelete(dbKey,id){
   const table=SUPA_TABLES[dbKey];if(!table)return;
   try{
-    const {error}=await supa.from(table).delete().eq('id',+id);
-    if(error){console.warn('[Supabase delete]',table,error.message);toast('Error al eliminar: '+error.message,true);}
-  }catch(e){console.warn('[Supabase]',e);toast('Error al eliminar: '+e.message,true);}
+    const {data,error}=await supa.from(table).delete().eq('id',+id).select();
+    if(error){toast('Error al eliminar: '+error.message,true);return;}
+    if(!data||data.length===0){toast('No se encontró en BD (ID:'+id+')',true);}
+  }catch(e){toast('Error al eliminar: '+e.message,true);}
 }
 
 function syncSheet(action,data){
