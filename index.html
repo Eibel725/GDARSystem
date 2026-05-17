@@ -4002,16 +4002,19 @@ function exportReqPDF(id){
   const _baseUrl=window.location.href.replace(/[^\/\\]+$/,'');
   const _logoUrl=_baseUrl+'09.-ERP/Imagenes/ECOSERMO-LOGO.png';
   const css='*{margin:0;padding:0;box-sizing:border-box}'
-    +'@page{margin:58px 0 20px}'
+    +'@page{margin:15px 0}'
     +'body{font-family:Segoe UI,Arial,sans-serif;font-size:12px;color:#111;padding:0 30px}'
-    /* ── Encabezado fijo (se repite en cada página impresa) ── */
-    +'.ph{position:fixed;top:0;left:0;right:0;background:#fff;padding:4px 30px 0;z-index:99}'
-    +'.ph-inner{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding-bottom:4px;border-bottom:2px solid #1e3a6e}'
-    +'.ph-logo{height:30px;max-width:140px;object-fit:contain}'
+    /* ── Tabla envolvente (thead = encabezado real que se repite por página) ── */
+    +'.doc{width:100%;border-collapse:collapse}'
+    +'.doc>thead>tr>td,.doc>tbody>tr>td{padding:0;border:none;vertical-align:top}'
+    /* ── Encabezado ── */
+    +'.ph{padding:8px 0 6px;border-top:3px solid #1e3a6e;border-bottom:2px solid #1e3a6e;margin-bottom:12px}'
+    +'.ph-inner{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px}'
+    +'.ph-logo{height:40px;max-width:160px;object-fit:contain}'
     +'.ph-center{text-align:center}'
-    +'.ph-title{font-size:11px;font-weight:900;color:#1e3a6e;letter-spacing:.02em;line-height:1.2}'
-    +'.ph-rq{font-family:Courier New,monospace;font-size:10px;font-weight:700;color:#d97706;letter-spacing:.08em}'
-    +'.ph-right{text-align:right;font-size:7px;color:#999;line-height:1.6}'
+    +'.ph-title{font-size:13px;font-weight:900;color:#1e3a6e;letter-spacing:.02em;line-height:1.2}'
+    +'.ph-rq{font-family:Courier New,monospace;font-size:11px;font-weight:700;color:#d97706;letter-spacing:.08em}'
+    +'.ph-right{text-align:right;font-size:7.5px;color:#999;line-height:1.7}'
     /* ── Pie de página de firmas ── */
     +'.pf{margin-top:32px;page-break-inside:avoid}'
     +'.pf-sep{border-top:1px solid #ddd;margin-bottom:8px}'
@@ -4021,31 +4024,31 @@ function exportReqPDF(id){
     +'.vb-line{border-top:1.5px solid #333;margin:0 10px 5px}'
     +'.vb-label{font-size:8.5px;text-transform:uppercase;font-weight:700;color:#1e3a6e;letter-spacing:.06em}'
     +'.vb-sub{font-size:7.5px;color:#aaa;margin-top:2px}'
-    +'.sys-footer{font-size:7.5px;color:#bbb;text-align:center}'
     /* ── Contenido ── */
-    +'h1{font-size:20px;font-weight:800;text-align:center;color:#1e3a6e;margin-bottom:4px;margin-top:8px}'
-    +'.rqnum{text-align:center;font-family:Courier New,monospace;font-size:13px;font-weight:700;color:#d97706;letter-spacing:.1em;margin-bottom:14px}'
     +'.proy{background:#eef3ff;border-left:4px solid #1e3a6e;border-radius:4px;padding:7px 12px;margin-bottom:12px}'
     +'.proy .lbl{font-size:8px;text-transform:uppercase;color:#888;font-weight:700;margin-bottom:2px}'
     +'.proy .val{font-weight:700;font-size:13px;color:#1e3a6e}'
     +'.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;background:#f8f9fb;border-radius:6px;padding:12px;border:1px solid #e2e6f0}'
     +'.lbl{font-size:8.5px;text-transform:uppercase;color:#999;margin-bottom:2px;font-weight:700}'
     +'.val{font-weight:600;font-size:11px}'
-    +'table{width:100%;border-collapse:collapse;margin-bottom:14px}'
-    +'th{background:#1e3a6e;color:#fff;padding:6px 8px;font-size:9px;text-transform:uppercase;font-weight:700}'
-    +'th.l{text-align:left}th.c{text-align:center}'
-    +'td{padding:5px 8px;border-bottom:1px solid #eee;font-size:11px}'
-    +'tr{page-break-inside:avoid}'
+    /* ── Tablas de contenido (.ct) ── */
+    +'.ct{width:100%;border-collapse:collapse;margin-bottom:14px}'
+    +'.ct th{background:#1e3a6e;color:#fff;padding:6px 8px;font-size:9px;text-transform:uppercase;font-weight:700}'
+    +'.ct th.l{text-align:left}.ct th.c{text-align:center}'
+    +'.ct td{padding:5px 8px;border-bottom:1px solid #eee;font-size:11px}'
+    +'.ct tr{page-break-inside:avoid}'
     +'.m{font-family:Courier New,monospace}'
     +'.sec{font-size:9.5px;text-transform:uppercase;color:#1e3a6e;margin:12px 0 6px;font-weight:700;border-left:3px solid #f59e0b;padding-left:7px}'
     +'.obs-box{background:#fafafa;border-left:3px solid #ccc;padding:8px 10px;color:#555;margin-bottom:12px;font-size:11px;border-radius:0 4px 4px 0}';
   let body='';
-  // ── Encabezado fijo ──
+  // ── Tabla envolvente: thead = encabezado real repetido por página ──
+  body+='<table class=doc><thead><tr><td>';
   body+='<div class=ph><div class=ph-inner>';
   body+='<img src="'+_logoUrl+'" class=ph-logo alt="Ecosermo">';
   body+='<div class=ph-center><div class=ph-title>Requerimiento de Materiales</div><div class=ph-rq>N° '+e(r.num)+'</div></div>';
   body+='<div class=ph-right>Documento de uso interno<br>Generado por GDAR</div>';
   body+='</div></div>';
+  body+='</td></tr></thead><tbody><tr><td>';
 
   // ── Contenido de página ──
   if(r.proyecto)body+='<div class=proy><div class=lbl>Proyecto'+(r.codProy?' <span style="font-family:monospace;color:#d97706;font-size:10px;margin-left:6px">'+e(r.codProy)+'</span>':'')+'</div><div class=val>'+e(r.proyecto)+'</div></div>';
@@ -4058,15 +4061,16 @@ function exportReqPDF(id){
   body+='<div><div class=lbl>Estado</div><div class=val>'+e(r.est)+'</div></div>';
   body+='</div>';
   body+='<div class=sec>Ítems Solicitados</div>';
-  body+='<table><thead><tr><th class=c>#</th><th class=l>Código</th><th class=c>Img.</th><th class=l>Descripción</th><th class=c>Unid.</th><th class=c>Cant.</th><th class=l>Obs.</th><th class=l>T. Costo</th></tr></thead><tbody>'+iRows+'</tbody></table>';
+  body+='<table class=ct><thead><tr><th class=c>#</th><th class=l>Código</th><th class=c>Img.</th><th class=l>Descripción</th><th class=c>Unid.</th><th class=c>Cant.</th><th class=l>Obs.</th><th class=l>T. Costo</th></tr></thead><tbody>'+iRows+'</tbody></table>';
   if(r.obs)body+='<div class=sec>Observaciones</div><div class=obs-box>'+e(r.obs)+'</div>';
-  if(comps.length)body+='<div class=sec>Comprobantes Vinculados</div><table><thead><tr><th class=l>Tipo</th><th class=l>N° Comp.</th><th class=l>Proveedor</th><th class=c>Total S/</th><th class=l>Estado</th></tr></thead><tbody>'+cRows+'</tbody></table>';
-  // ── Firmas al final del documento (no fixed) ──
+  if(comps.length)body+='<div class=sec>Comprobantes Vinculados</div><table class=ct><thead><tr><th class=l>Tipo</th><th class=l>N° Comp.</th><th class=l>Proveedor</th><th class=c>Total S/</th><th class=l>Estado</th></tr></thead><tbody>'+cRows+'</tbody></table>';
+  // ── Firmas al final del documento ──
   body+='<div class=pf><div class=pf-sep></div><div class=vb-wrap>';
   body+='<div class=vb><div class=vb-space></div><div class=vb-line></div><div class=vb-label>V°B° Jefe de Área</div><div class=vb-sub>Firma y sello</div></div>';
   body+='<div class=vb><div class=vb-space></div><div class=vb-line></div><div class=vb-label>V°B° Jefe de Proy. / Residente</div><div class=vb-sub>Firma y sello</div></div>';
   body+='<div class=vb><div class=vb-space></div><div class=vb-line></div><div class=vb-label>V°B° Almacén</div><div class=vb-sub>Firma y sello</div></div>';
   body+='</div></div>';
+  body+='</td></tr></tbody></table>';
   const S='<'+'/';
   const html='<!DOCTYPE html><html><head><meta charset=utf-8><title>'+e(r.num)+S+'title><style>'+css+S+'style>'+S+'head><body>'+body+S+'body>'+S+'html>';
   const win=window.open('','_blank');
