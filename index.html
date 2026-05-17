@@ -732,6 +732,7 @@ select option{background:var(--panel2);}
           <button class="btn btn-out btn-sm" title="Limpiar fechas" onclick="document.getElementById('progFDesde').value='';document.getElementById('progFHasta').value='';rProg()" style="padding:.25rem .5rem;font-size:.7rem">✕</button>
         </div>
         <div class="search-wrap"><span>🔍</span><input class="search-input" placeholder="Buscar..." oninput="flt(this,'tbProg')"></div>
+        <button class="btn btn-out btn-sm" title="Exportar PDF / Imprimir" onclick="printProgGantt()" style="color:var(--mec);border-color:var(--mec)60;font-size:.78rem">🖨️ PDF</button>
         <button class="btn btn-a" style="--ba:var(--mec)" onclick="openMant()">＋ Programar</button>
       </div>
     </div>
@@ -4865,6 +4866,70 @@ function gMant(){
     syncSheet('saveMantenimiento',rec);
     closeM('mMant');rProg();toast('Mantenimiento programado');
   }
+}
+function printProgGantt(){
+  const fdEl=document.getElementById('progFDesde'),fhEl=document.getElementById('progFHasta');
+  let desde=fdEl?fdEl.value:'',hasta=fhEl?fhEl.value:'';
+  if(!desde||!hasta){
+    const now=new Date(),dow=now.getDay()||7;
+    const mon=new Date(now);mon.setDate(now.getDate()-dow+1);
+    const sun=new Date(mon);sun.setDate(mon.getDate()+6);
+    if(!desde)desde=mon.toISOString().slice(0,10);
+    if(!hasta)hasta=sun.toISOString().slice(0,10);
+  }
+  const rows=DB.mantenimientos.filter(r=>r.fp&&r.fp>=desde&&r.fp<=hasta);
+  const days=[];
+  let dc=new Date(desde+'T12:00:00');const endD=new Date(hasta+'T12:00:00');
+  while(dc<=endD){days.push(dc.toISOString().slice(0,10));dc.setDate(dc.getDate()+1);}
+  const DN=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const SC={'Programado':{bg:'#dbeafe',tx:'#1e40af',bar:'#3b82f6'},'En Proceso':{bg:'#fef3c7',tx:'#92400e',bar:'#f59e0b'},'Completado':{bg:'#d1fae5',tx:'#065f46',bar:'#10b981'},'Postergado':{bg:'#f3f4f6',tx:'#374151',bar:'#9ca3af'}};
+  const wk=(ds)=>{const d=new Date(ds+'T12:00:00'),j4=new Date(d.getFullYear(),0,4),w1=new Date(j4);w1.setDate(j4.getDate()-(j4.getDay()||7)+1);return Math.ceil(((d-w1)/86400000+1)/7);};
+  const semana=wk(desde);
+  const dayHdrs=days.map(day=>{const d=new Date(day+'T12:00:00');return`<th style="text-align:center;width:38px;padding:3px 1px;font-size:8.5px;background:#1e3a5f;color:#fff"><div>${DN[d.getDay()]}</div><div style="opacity:.8;font-size:8px">${day.slice(5).replace('-','/')}</div></th>`;}).join('');
+  const summaryRows=rows.map(r=>{
+    const eq=DB.equipos.find(e=>e.id===r.eqId),sc=SC[r.est]||SC['Postergado'],proy=eq?eq.proyecto||'—':'—';
+    return`<tr><td style="font-weight:700;color:#1e3a5f;white-space:nowrap">${r.ot}</td><td>${eq?eq.codigo+' '+eq.nombre.split(' ').slice(0,2).join(' '):'—'}</td><td>${r.tipo}</td><td style="font-size:9px">${r.desc||'—'}</td><td>${r.mec||'—'}</td><td style="text-align:center">${r.fp||'—'}</td><td style="text-align:center">${r.fe||'—'}</td><td style="text-align:right">${r.hs||0} h</td><td><span style="background:${sc.bg};color:${sc.tx};padding:2px 5px;border-radius:3px;font-size:8.5px;font-weight:700">${r.est}</span></td><td style="color:#7c3aed;font-size:9px">${proy}</td></tr>`;
+  }).join('');
+  const ganttRows=rows.map(r=>{
+    const eq=DB.equipos.find(e=>e.id===r.eqId),sc=SC[r.est]||SC['Postergado'];
+    const fe=r.fe||r.fp||'';
+    const cells=days.map(day=>{
+      const active=r.fp&&day>=r.fp&&day<=fe;
+      return active?`<td style="background:${sc.bar};padding:0;border:1px solid ${sc.bar}"></td>`:`<td style="border:1px solid #e2e8f0"></td>`;
+    }).join('');
+    return`<tr><td style="font-weight:700;font-size:9.5px;white-space:nowrap;color:#1e3a5f">${r.ot}</td><td style="font-size:9px">${eq?eq.codigo+' '+eq.nombre.split(' ').slice(0,2).join(' '):'—'}</td><td style="font-size:9px">${r.mec||'—'}</td><td><span style="background:${sc.bg};color:${sc.tx};padding:1px 4px;border-radius:2px;font-size:8px;font-weight:700">${r.est}</span></td>${cells}</tr>`;
+  }).join('');
+  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Programación Semana ${semana}</title>
+<style>@page{size:A4 landscape;margin:1cm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:10px;color:#111;margin:0}
+h1{font-size:14px;margin:0;color:#1e3a5f}h2{font-size:10px;margin:2px 0 10px;color:#64748b;font-weight:normal}
+.kpis{display:flex;gap:10px;margin-bottom:10px}.kpi{border-left:3px solid;padding:5px 10px;background:#f8fafc;border-radius:3px}
+.kl{font-size:8px;color:#64748b;text-transform:uppercase}.kv{font-size:17px;font-weight:700}
+table{width:100%;border-collapse:collapse}th{background:#1e3a5f;color:#fff;padding:4px 6px;text-align:left;font-size:9px}
+td{border:1px solid #e2e8f0;padding:3px 5px;vertical-align:middle}tr:nth-child(even) td{background:#f8fafc}
+.gantt td{height:22px}.sec{font-size:11px;font-weight:700;color:#1e3a5f;margin:10px 0 4px;border-bottom:2px solid #1e3a5f;padding-bottom:3px}
+.legend{display:flex;gap:8px;margin-top:6px;font-size:8.5px;align-items:center}
+.ld{width:10px;height:10px;border-radius:2px;display:inline-block}
+@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style></head><body>
+<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:8px">
+  <div><h1>📅 Programación de Mantenimiento</h1><h2>Semana N° ${semana} &nbsp;·&nbsp; ${desde} → ${hasta} &nbsp;·&nbsp; ${rows.length} orden(es)</h2></div>
+  <div style="text-align:right"><div style="font-weight:700;font-size:12px;color:#1e3a5f">GDAR – ECOSERMO</div><div style="font-size:8px;color:#94a3b8">Generado: ${new Date().toLocaleString('es-PE')}</div></div>
+</div>
+<div class="kpis">
+  <div class="kpi" style="border-color:#3b82f6"><div class="kl">Programados</div><div class="kv" style="color:#3b82f6">${rows.filter(r=>r.est==='Programado').length}</div></div>
+  <div class="kpi" style="border-color:#f59e0b"><div class="kl">En Proceso</div><div class="kv" style="color:#f59e0b">${rows.filter(r=>r.est==='En Proceso').length}</div></div>
+  <div class="kpi" style="border-color:#10b981"><div class="kl">Completados</div><div class="kv" style="color:#10b981">${rows.filter(r=>r.est==='Completado').length}</div></div>
+  <div class="kpi" style="border-color:#9ca3af"><div class="kl">Postergados</div><div class="kv" style="color:#9ca3af">${rows.filter(r=>r.est==='Postergado').length}</div></div>
+</div>
+<div class="sec">Detalle de Órdenes</div>
+<table><thead><tr><th>OT</th><th>Equipo</th><th>Tipo</th><th>Descripción</th><th>Mecánico</th><th>F. Prog.</th><th>F. Ejec.</th><th>Hs/Km</th><th>Estado</th><th>Proyecto</th></tr></thead><tbody>${summaryRows}</tbody></table>
+<div class="sec">Diagrama de Gantt</div>
+<table class="gantt"><thead><tr><th style="width:80px">OT</th><th style="width:140px">Equipo</th><th style="width:120px">Mecánico</th><th style="width:75px">Estado</th>${dayHdrs}</tr></thead><tbody>${ganttRows}</tbody></table>
+<div class="legend"><strong>Leyenda:</strong><span class="ld" style="background:#3b82f6"></span>Programado<span class="ld" style="background:#f59e0b"></span>En Proceso<span class="ld" style="background:#10b981"></span>Completado<span class="ld" style="background:#9ca3af"></span>Postergado</div>
+</body></html>`;
+  const win=window.open('','_blank','width=1200,height=750');
+  win.document.write(html);win.document.close();
+  setTimeout(()=>win.print(),700);
 }
 
 // ══ AUXILIOS MECÁNICOS ══
