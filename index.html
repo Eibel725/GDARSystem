@@ -709,7 +709,7 @@ select option{background:var(--panel2);}
       </div>
     </div>
     <div class="card-body"><div class="tbl-wrap"><table>
-      <thead><tr><th>Código</th><th>Equipo</th><th>Tipo</th><th>Marca</th><th>Modelo</th><th>Año</th><th>N° Serie</th><th>Placa</th><th>HP</th><th>M³</th><th>Peso KG</th><th>Dimensiones</th><th>Horómetro</th><th>Estado</th><th>Ubicación</th><th>F. Llegada</th><th>F. Salida</th><th>Status</th><th>SOAT</th><th>P. TREC</th><th>Rev. Técnica</th><th>GPS</th><th>Proveedor</th><th>Contacto</th><th>Celular</th><th>Correo</th><th>H. Mín.</th><th>Tarifa S/</th><th>S//h</th><th>Inicio Contrato</th><th>Término Contrato</th><th>CC GET'S</th><th>CC Engrase</th><th>CC R.Niv.</th><th>CC M.Prev.</th><th>CC M.Corr.</th><th></th></tr></thead>
+      <thead><tr><th>Código</th><th>Equipo</th><th>Tipo</th><th>Marca</th><th>Modelo</th><th>Año</th><th>N° Serie</th><th>Placa</th><th>HP</th><th>M³</th><th>Peso KG</th><th>Dimensiones</th><th>Horómetro</th><th>Estado</th><th>Ubicación</th><th>F. Llegada</th><th>F. Salida</th><th>Status</th><th>SOAT</th><th>P. TREC</th><th>Rev. Técnica</th><th>GPS</th><th>Proveedor</th><th>Contacto</th><th>Celular</th><th>Correo</th><th>H. Mín.</th><th>Tarifa S/</th><th>Inicio Contrato</th><th>Término Contrato</th><th>CC GET'S</th><th>CC Engrase</th><th>CC R.Niv.</th><th>CC M.Prev.</th><th>CC M.Corr.</th><th></th></tr></thead>
       <tbody id="tbMaster"></tbody>
     </table></div></div>
   </div>
@@ -1481,7 +1481,6 @@ select option{background:var(--panel2);}
       <div class="fg"><label>Placa</label><input id="eqPl" placeholder="ABC-123"></div>
       <div class="fg"><label>Horómetro Inicial</label><input id="eqHr" type="number" value="0"></div>
       <div class="fg"><label>Estado</label><select id="eqEst"><option>Operativo</option><option>En Mantenimiento</option><option>Parado</option><option>Inoperativo</option></select></div>
-      <div class="fg"><label>Costo/Hora S/</label><input id="eqCh" type="number" placeholder="120"></div>
     </div>
     <div id="eqP1" class="fg-grid" style="display:none">
       <div class="eq-sec">Datos Técnicos</div>
@@ -4598,7 +4597,6 @@ function rMaster(){
     <td>${e.correo||'—'}</td>
     <td class="tr mono">${e.horasMinimas!=null&&e.horasMinimas!==''?fmtN(e.horasMinimas):'—'}</td>
     <td class="tr mono">${e.tarifa?fmt(e.tarifa):'—'}</td>
-    <td class="mono">${fmt(e.ch)}/h</td>
     <td class="mono">${e.inicioContrato||'—'}</td>
     <td class="mono">${e.terminoContrato||'—'}</td>
     <td class="tr mono">${e.ccGets?fmt(e.ccGets):'—'}</td>
@@ -4637,7 +4635,6 @@ function gEquipo(){
     placa:document.getElementById('eqPl').value,
     hr:+document.getElementById('eqHr').value||0,
     est:document.getElementById('eqEst').value,
-    ch:+document.getElementById('eqCh').value||0,
     numSerie:document.getElementById('eqNs').value,
     potenciaHp:+document.getElementById('eqPhp').value||null,
     capacidadM3:+document.getElementById('eqCm3').value||null,
