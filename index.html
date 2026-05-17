@@ -767,7 +767,11 @@ select option{background:var(--panel2);}
   <div class="kpi-row" id="engraseKpis"></div>
   <div class="card">
     <div class="card-head"><span class="card-title">Grilla de Engrase</span>
-      <div class="card-head-right" style="gap:.5rem">
+      <div class="card-head-right" style="gap:.5rem;flex-wrap:wrap;align-items:center">
+        <select id="engraseProy" onchange="rEngrase()" style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:.28rem .6rem;color:var(--text);font-size:.8rem;max-width:190px">
+          <option value="">— Todos los proyectos —</option>
+        </select>
+        <input type="text" id="engraseElab" placeholder="Elaborado por..." style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:.28rem .6rem;color:var(--text);font-size:.8rem;width:155px">
         <input type="month" id="engraseMes" style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:.28rem .6rem;color:var(--text);font-size:.8rem" oninput="rEngrase()">
         <button class="btn btn-out btn-sm" onclick="printEngrase()" style="color:var(--mec);border-color:var(--mec)60;font-size:.78rem">🖨️ PDF</button>
       </div>
@@ -4991,6 +4995,16 @@ function rEngrase(){
   const days=new Date(y,m,0).getDate();
   const monthStr=`${y}-${pad(m)}`;
   const DN=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  // Poblar dropdown de proyectos
+  const proyEl=document.getElementById('engraseProy');
+  if(proyEl){
+    const cur=proyEl.value;
+    proyEl.innerHTML='<option value="">— Todos los proyectos —</option>'+
+      (DB.proyectos||[]).map(p=>`<option value="${p.nombre}">${p.nombre}</option>`).join('');
+    if(cur)proyEl.value=cur;
+  }
+  const proyFiltro=proyEl?proyEl.value:'';
+  const equiposFilt=proyFiltro?DB.equipos.filter(eq=>eq.proyecto===proyFiltro):DB.equipos;
   const monthRecs=DB.engrase.filter(r=>r.fecha&&r.fecha.startsWith(monthStr));
   const uniqueEqs=[...new Set(monthRecs.map(r=>r.eqId))].length;
   document.getElementById('engraseKpis').innerHTML=[
@@ -5003,7 +5017,7 @@ function rEngrase(){
     const dow=new Date(fecha+'T12:00:00').getDay(),isSun=dow===0;
     return`<th style="text-align:center;min-width:26px;width:26px;padding:2px 1px;font-size:.62rem;${isSun?'color:#f59e0b;background:rgba(245,158,11,.12)':''}">${d}<div style="font-size:.55rem;opacity:.7">${DN[dow]}</div></th>`;
   }).join('');
-  const rows=DB.equipos.map((eq,idx)=>{
+  const rows=equiposFilt.map((eq,idx)=>{
     const cells=Array.from({length:days},(_,i)=>{
       const d=i+1,fecha=`${y}-${pad(m)}-${pad(d)}`;
       const active=DB.engrase.some(r=>r.eqId===eq.id&&r.fecha===fecha);
@@ -5073,7 +5087,12 @@ function printEngrase(){
     const dow=new Date(fecha+'T12:00:00').getDay(),isSun=dow===0;
     return`<th style="text-align:center;width:22px;min-width:22px;padding:2px 0;font-size:7.5px;${isSun?'background:#fef3c7;color:#92400e':'background:#1e3a5f;color:#fff'}">${d}<br><span style="font-size:6.5px">${DN[dow]}</span></th>`;
   }).join('');
-  const rows=DB.equipos.map((eq,idx)=>{
+  const proyEl=document.getElementById('engraseProy');
+  const proyFiltro=proyEl?proyEl.value:'';
+  const proyNombre=proyFiltro||(proyEl&&proyEl.value===''?'':proyEl?.options[proyEl.selectedIndex]?.text||'');
+  const elab=document.getElementById('engraseElab')?.value||'';
+  const equiposFilt=proyFiltro?DB.equipos.filter(eq=>eq.proyecto===proyFiltro):DB.equipos;
+  const rows=equiposFilt.map((eq,idx)=>{
     const cells=Array.from({length:days},(_,i)=>{
       const d=i+1,fecha=`${y}-${pad(m)}-${pad(d)}`;
       const active=DB.engrase.some(r=>r.eqId===eq.id&&r.fecha===fecha);
@@ -5083,7 +5102,7 @@ function printEngrase(){
     const tot=DB.engrase.filter(r=>r.eqId===eq.id&&r.fecha.startsWith(monthStr)).length;
     return`<tr><td style="text-align:center;font-size:8px;padding:2px 3px;border:1px solid #e2e8f0">${idx+1}</td><td style="font-size:7.5px;padding:2px 3px;border:1px solid #e2e8f0;white-space:nowrap">${eq.tipo||'—'}</td><td style="font-size:8px;font-weight:700;padding:2px 5px;border:1px solid #e2e8f0;white-space:nowrap">${eq.nombre}</td><td style="font-size:7.5px;padding:2px 3px;border:1px solid #e2e8f0;font-family:monospace">${eq.placa||'—'}</td>${cells}<td style="text-align:center;font-weight:700;font-size:9px;color:#044e64;padding:2px 4px;border:1px solid #e2e8f0;background:#e0f2fe">${tot||''}</td></tr>`;
   }).join('');
-  const elaborador=DB.personal&&DB.personal[0]?DB.personal[0].nombre:'';
+  const elaborador=elab;
   const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Engrase ${mesNombre} ${y}</title>
 <style>@page{size:A4 landscape;margin:.8cm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:9px;color:#111;margin:0}
 .hdr{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #1e3a5f;padding-bottom:6px;margin-bottom:8px}
@@ -5101,7 +5120,7 @@ td{border:1px solid #e2e8f0;vertical-align:middle}tr:nth-child(even) td{backgrou
   <div style="text-align:right;font-size:8px;color:#64748b"><div style="font-weight:700;color:#1e3a5f;font-size:10px">${mesNombre} ${y}</div><div>Generado: ${new Date().toLocaleString('es-PE')}</div></div>
 </div>
 <div class="info-row">
-  <div class="info-lbl">Proyecto:</div><div class="info-val"></div>
+  <div class="info-lbl">Proyecto:</div><div class="info-val">${proyNombre||'— Todos —'}</div>
   <div class="info-lbl">Elaborado por:</div><div class="info-val">${elaborador}</div>
   <div class="info-lbl">Fecha:</div><div class="info-val" style="background:#fef08a;font-weight:700;color:#1e3a5f">${new Date().toLocaleDateString('es-PE')}</div>
 </div>
