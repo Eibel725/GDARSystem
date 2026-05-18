@@ -1282,7 +1282,7 @@ select option{background:var(--panel2);}
     <div class="fg-grid">
       <div class="fg" style="grid-column:1/-1"><label>Nombre de Proyecto</label><select id="smProyecto" onchange="renderSMItems()"><option value="">— Sin Proyecto —</option></select></div>
       <div class="fg"><label>Fecha</label><input id="smF" type="date"></div>
-      <div class="fg"><label>N° de Vale</label><input id="smVale" placeholder="VAL-001" style="font-family:'Roboto Mono',monospace;font-weight:700"></div>
+      <div class="fg"><label>N° de Vale</label><input id="smVale" readonly style="font-family:'Roboto Mono',monospace;font-weight:700;opacity:.8;cursor:default;background:var(--panel2)"></div>
       <div class="fg" style="grid-column:1/-1"><label>Para Persona / Equipo</label><select id="smPers"></select></div>
       <div class="fg"><label>Tipo de Costo</label><select id="smTc"><option>Costo Directo</option><option>Costo Indirecto</option><option>Reembolsable</option><option>Costo de Terceros</option></select></div>
       <div class="fg"><label>Destino / Área que recibe</label><select id="smDest"><option value="">— Seleccionar destino —</option><option>Operaciones</option><option>Seguridad</option><option>Mantenimiento</option><option>Administración</option><option>Control de Proyectos</option><option>Almacén y Logística</option><option>Bienestar Social</option><option>Otros</option></select></div>
