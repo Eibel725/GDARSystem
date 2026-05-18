@@ -3213,8 +3213,9 @@ function gAlmEM(){
 }
 // ══ SALIDA MÚLTIPLE ══
 let smItemsArr=[];
-function _nextValeNum(){
-  const vales=DB.almacen.filter(r=>r.tipo==='S'&&r.numVale&&/^VAL-\d+$/i.test(String(r.numVale).trim()));
+function _nextValeNum(codProy){
+  const all=DB.almacen.filter(r=>r.tipo==='S'&&r.numVale&&/^VAL-\d+$/i.test(String(r.numVale).trim()));
+  const vales=codProy?all.filter(r=>(r.codProy||'')===codProy):all;
   if(!vales.length)return'VAL-0001';
   const maxN=Math.max(...vales.map(r=>+String(r.numVale).trim().toUpperCase().replace('VAL-','')));
   return'VAL-'+String(maxN+1).padStart(4,'0');
@@ -3246,6 +3247,8 @@ function renderSMItems(){
   const smProyNom=smProyEl?smProyEl.value:'';
   const smProy=smProyNom?DB.proyectos.find(p=>p.nombre===smProyNom):null;
   const smCodProy=smProy?smProy.codigo:'';
+  const valeEl=document.getElementById('smVale');
+  if(valeEl)valeEl.value=_nextValeNum(smCodProy);
   const st=smProyNom?_getStockProy(smCodProy,smProyNom):getStock();
   const allStock=Object.entries(st).filter(([,v])=>v.stock>0);
   const b=document.getElementById('smItemsBody');if(!b)return;
