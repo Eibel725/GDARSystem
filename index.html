@@ -3288,7 +3288,8 @@ function _printValeFiltrar(){
 }
 function printVale(){
   const vale=document.getElementById('printValeSel').value;if(!vale)return;
-  const rows=DB.almacen.filter(r=>r.tipo==='S'&&String(r.numVale||'').trim()===vale);
+  const codProy=(document.getElementById('printValeProy')||{}).value||'';
+  const rows=DB.almacen.filter(r=>r.tipo==='S'&&String(r.numVale||'').trim()===vale&&(!codProy||(r.codProy||'').trim()===codProy));
   if(!rows.length){toast('Sin registros para ese vale',true);return;}
   const h=rows[0];
   const _logoUrl=window.location.href.replace(/[^\/\\]+$/,'')+'09.-ERP/Imagenes/ECOSERMO-LOGO.png';
