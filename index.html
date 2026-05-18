@@ -3404,7 +3404,10 @@ function rAlm(){
     {l:'Mov. Entradas',v:DB.almacen.filter(r=>r.tipo==='E').length,c:'#10b981'},
     {l:'Mov. Salidas',v:DB.almacen.filter(r=>r.tipo==='S').length,c:'#ef4444'},
     {l:'Stock Cero',v:items.filter(([,v])=>v.stock<=0).length,c:'#f97316'}
-  ].map(k=>`<div class="kpi" style="--kc:${k.c}"><div class="kpi-lbl">${k.l}</div><div class="kpi-val">${k.v}</div></div>`).join('');
+  ].map(k=>`<div style="background:#94a3b8;border:1px solid #78909c;border-top:3px solid ${k.c};border-radius:9px;padding:.9rem 1.1rem;flex:1;min-width:150px">
+    <div style="font-size:.62rem;letter-spacing:.12em;color:#1e293b;text-transform:uppercase;font-weight:700;margin-bottom:.35rem">${k.l}</div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.85rem;font-weight:800;color:#1e293b;line-height:1">${k.v}</div>
+  </div>`).join('');
   // Poblar filtro de proyectos
   const fpEl=document.getElementById('almFiltProy');
   if(fpEl){const sv=_almFiltProy;fpEl.innerHTML='<option value="">— Todos los proyectos —</option>'+DB.proyectos.map(p=>`<option value="${p.codigo}">[${p.codigo}] ${p.nombre}</option>`).join('');fpEl.value=sv;}
