@@ -1991,7 +1991,7 @@ select option{background:var(--panel2);}
 // ══ AREAS CONFIG ══
 const AREAS={
   administracion:{label:'Administración',icon:'🏢',color:'#3b82f6',prefix:'ECOADM',
-    modules:[{key:'personal',label:'Personal / RR.HH.',icon:'👷'},{key:'asistencia',label:'Asistencia / Tareaje',icon:'✅'},{key:'planilla',label:'Planilla',icon:'💵'}]},
+    modules:[{key:'personal',label:'Personal / RR.HH.',icon:'👷'},{key:'asistencia',label:'Asistencia / Tareaje',icon:'✅'},{key:'planilla',label:'Planilla',icon:'💵'},{key:'tareaje',label:'Tareaje Mensual',icon:'📋'}]},
   bienestarSocial:{label:'Bienestar Social',icon:'🤝',color:'#ec4899',prefix:'ECOBSW',
     modules:[{key:'asistentaSocial',label:'Asistenta Social',icon:'💼'},{key:'residencia',label:'Residencia',icon:'🏠'},{key:'alimentacion',label:'Alimentación',icon:'🍽️'},{key:'hospedaje',label:'Hospedaje',icon:'🛏️'},{key:'lavanderia',label:'Lavandería',icon:'👕'}]},
   almacenLogistica:{label:'Almacén y Logística',icon:'📦',color:'#f97316',prefix:'ECOALM',
@@ -2001,7 +2001,7 @@ const AREAS={
   seguridad:{label:'Seguridad',icon:'🛡️',color:'#ef4444',prefix:'ECOSEG',
     modules:[{key:'seguridad',label:'Seguridad',icon:'⛑️'},{key:'medioAmbiente',label:'Medio Ambiente',icon:'🌿'}]},
   mantenimiento:{label:'Mantenimiento Mecánico',icon:'🔧',color:'#8b5cf6',prefix:'ECOMEC',
-    modules:[{key:'masterEquipos',label:'Máster de Equipos',icon:'🗂️'},{key:'programacionEquipos',label:'Programación',icon:'📅'},{key:'auxiliosMecanicos',label:'Auxilios Mecánicos',icon:'🚨'},{key:'engraseEquipos',label:'Engrase Mensual',icon:'🛢️'},{key:'tareaje',label:'Tareaje',icon:'📋'}]},
+    modules:[{key:'masterEquipos',label:'Máster de Equipos',icon:'🗂️'},{key:'programacionEquipos',label:'Programación',icon:'📅'},{key:'auxiliosMecanicos',label:'Auxilios Mecánicos',icon:'🚨'},{key:'engraseEquipos',label:'Engrase Mensual',icon:'🛢️'}]},
   controlProyecto:{label:'Control de Proyecto',icon:'📊',color:'#10b981',prefix:'ECOCTL',
     modules:[{key:'planner',label:'Planner',icon:'📈'}]},
     //-Menu para control de equipos.
@@ -5037,9 +5037,9 @@ function rTareaje(){
   const monthStr=`${y}-${pad(m)}`;
   const DN=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
   const proyEl=document.getElementById('tareProy');
-  if(proyEl){const cur=proyEl.value;proyEl.innerHTML='<option value="">— Todos los proyectos —</option>'+(DB.proyectos||[]).map(p=>`<option value="${p.nombre}">${p.nombre}</option>`).join('');if(cur)proyEl.value=cur;}
+  if(proyEl){const cur=proyEl.value;proyEl.innerHTML='<option value="">— Todos los proyectos —</option>'+(DB.proyectos||[]).map(p=>`<option value="${p.codigo}">[${p.codigo}] ${p.nombre}</option>`).join('');if(cur)proyEl.value=cur;}
   const proyFiltro=proyEl?proyEl.value:'';
-  const persF=proyFiltro?DB.personal.filter(p=>p.proyecto===proyFiltro||p.proy===proyFiltro):DB.personal;
+  const persF=proyFiltro?DB.personal.filter(p=>p.proy===proyFiltro):DB.personal;
   const monthRecs=DB.tareaje.filter(r=>r.fecha&&r.fecha.startsWith(monthStr));
   document.getElementById('tareKpis').innerHTML=[
     {l:'Trabajadores',v:persF.length,c:'var(--mec)',ic:'👷',sub:'en grilla'},
@@ -5067,7 +5067,7 @@ function rTareaje(){
     const totN=DB.tareaje.filter(r=>r.personalId===p.id&&r.fecha.startsWith(monthStr)&&r.tipo==='TN').length;
     return`<tr style="border-bottom:1px solid var(--border)">
       <td style="text-align:center;font-size:.7rem;color:var(--muted2);padding:3px 5px;white-space:nowrap">${idx+1}</td>
-      <td style="padding:3px 8px;white-space:nowrap;font-size:.78rem;min-width:180px"><strong>${p.nombre}</strong></td>
+      <td style="padding:3px 8px;white-space:nowrap;font-size:.78rem;min-width:180px"><strong>${p.ape}, ${p.nom}</strong></td>
       <td style="padding:3px 5px;white-space:nowrap;font-size:.7rem;color:var(--muted2);min-width:100px">${p.cargo||'—'}</td>
       ${cells}
       <td style="text-align:center;font-size:.72rem;padding:3px 6px;white-space:nowrap;background:rgba(4,78,100,.08)"><span style="color:#10b981;font-weight:700">${totD}</span>/<span style="color:#3b82f6;font-weight:700">${totN}</span></td>
@@ -5145,9 +5145,9 @@ function printTareaje(){
   const _logoUrl=window.location.href.replace(/[^\/\\]+$/,'')+'09.-ERP/Imagenes/ECOSERMO-LOGO.png';
   const proyEl=document.getElementById('tareProy');
   const proyFiltro=proyEl?proyEl.value:'';
-  const proyNombre=proyFiltro||'— Todos —';
+  const proyNombre=proyFiltro?(DB.proyectos.find(p=>p.codigo===proyFiltro)?.nombre||proyFiltro):'— Todos —';
   const elab=document.getElementById('tareElab')?.value||'';
-  const persF=proyFiltro?DB.personal.filter(p=>p.proyecto===proyFiltro||p.proy===proyFiltro):DB.personal;
+  const persF=proyFiltro?DB.personal.filter(p=>p.proy===proyFiltro):DB.personal;
   const dayHdrs=Array.from({length:days},(_,i)=>{
     const d=i+1,fecha=`${y}-${pad(m)}-${pad(d)}`;
     const dow=new Date(fecha+'T12:00:00').getDay(),isSun=dow===0;
@@ -5164,7 +5164,7 @@ function printTareaje(){
     }).join('');
     const totD=DB.tareaje.filter(r=>r.personalId===p.id&&r.fecha.startsWith(monthStr)&&(r.tipo==='TD'||r.tipo==='DLT')).length;
     const totN=DB.tareaje.filter(r=>r.personalId===p.id&&r.fecha.startsWith(monthStr)&&r.tipo==='TN').length;
-    return`<tr><td style="text-align:center;font-size:7px;padding:1px 2px;border:1px solid #e2e8f0">${idx+1}</td><td style="font-size:7.5px;font-weight:700;padding:1px 4px;border:1px solid #e2e8f0;white-space:nowrap">${p.nombre}</td><td style="font-size:6.5px;padding:1px 3px;border:1px solid #e2e8f0;white-space:nowrap;color:#64748b">${p.cargo||'—'}</td>${cells}<td style="text-align:center;font-size:7px;padding:1px 3px;border:1px solid #e2e8f0;background:#e0f2fe"><span style="color:#059669;font-weight:700">${totD}</span>/<span style="color:#1e40af;font-weight:700">${totN}</span></td></tr>`;
+    return`<tr><td style="text-align:center;font-size:7px;padding:1px 2px;border:1px solid #e2e8f0">${idx+1}</td><td style="font-size:7.5px;font-weight:700;padding:1px 4px;border:1px solid #e2e8f0;white-space:nowrap">${p.ape}, ${p.nom}</td><td style="font-size:6.5px;padding:1px 3px;border:1px solid #e2e8f0;white-space:nowrap;color:#64748b">${p.cargo||'—'}</td>${cells}<td style="text-align:center;font-size:7px;padding:1px 3px;border:1px solid #e2e8f0;background:#e0f2fe"><span style="color:#059669;font-weight:700">${totD}</span>/<span style="color:#1e40af;font-weight:700">${totN}</span></td></tr>`;
   }).join('');
   const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Tareaje ${mesNombre} ${y}</title>
 <style>@page{size:A4 landscape;margin:.7cm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:9px;color:#111;margin:0}
@@ -5200,7 +5200,7 @@ function rEngrase(){
   if(proyEl){
     const cur=proyEl.value;
     proyEl.innerHTML='<option value="">— Todos los proyectos —</option>'+
-      (DB.proyectos||[]).map(p=>`<option value="${p.nombre}">${p.nombre}</option>`).join('');
+      (DB.proyectos||[]).map(p=>`<option value="${p.codigo}">[${p.codigo}] ${p.nombre}</option>`).join('');
     if(cur)proyEl.value=cur;
   }
   const proyFiltro=proyEl?proyEl.value:'';
