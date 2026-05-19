@@ -771,6 +771,9 @@ select option{background:var(--panel2);}
         <select id="engraseProy" onchange="rEngrase()" style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:.28rem .6rem;color:var(--text);font-size:.8rem;max-width:190px">
           <option value="">— Todos los proyectos —</option>
         </select>
+        <select id="engraseTipoFilt" onchange="rEngrase()" style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:.28rem .6rem;color:var(--text);font-size:.8rem;max-width:170px">
+          <option value="Línea Amarilla">Línea Amarilla</option>
+        </select>
         <input type="text" id="engraseElab" placeholder="Elaborado por..." style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:.28rem .6rem;color:var(--text);font-size:.8rem;width:155px">
         <input type="month" id="engraseMes" style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:.28rem .6rem;color:var(--text);font-size:.8rem" oninput="rEngrase()">
         <button class="btn btn-out btn-sm" onclick="printEngrase()" style="color:var(--mec);border-color:var(--mec)60;font-size:.78rem">🖨️ PDF</button>
@@ -778,6 +781,28 @@ select option{background:var(--panel2);}
     </div>
     <div class="card-body" style="overflow-x:auto;padding:0">
       <table id="tbEngrase" style="border-collapse:collapse;min-width:100%"></table>
+    </div>
+  </div>
+</div>
+
+<!-- ENGRASE PICKER -->
+<div id="engrasePicker" style="display:none"></div>
+<!-- ENGRASE EJECUCIÓN MODAL -->
+<div id="mEngraseEjec" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.5);align-items:center;justify-content:center">
+  <div style="background:var(--panel);border-radius:12px;padding:1.5rem;width:440px;max-width:95vw;box-shadow:0 8px 32px rgba(0,0,0,.3)">
+    <div style="font-size:1rem;font-weight:700;color:#10b981;margin-bottom:1.1rem">✔ Registrar Ejecución de Engrase</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem">
+      <div><label style="font-size:.72rem;color:var(--muted2);font-weight:600;display:block;margin-bottom:.2rem">Cant. Engrase</label><input id="ejecCant" type="number" min="0" step="0.1" placeholder="0" style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:.3rem .5rem;color:var(--text);font-size:.82rem;width:100%"></div>
+      <div><label style="font-size:.72rem;color:var(--muted2);font-weight:600;display:block;margin-bottom:.2rem">Tiempo (HH)</label><input id="ejecHH" type="number" min="0" step="0.1" placeholder="0" style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:.3rem .5rem;color:var(--text);font-size:.82rem;width:100%"></div>
+    </div>
+    <div style="margin-bottom:.75rem"><label style="font-size:.72rem;color:var(--muted2);font-weight:600;display:block;margin-bottom:.2rem">Observaciones</label><textarea id="ejecObs" rows="2" placeholder="Observaciones..." style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:.3rem .5rem;color:var(--text);font-size:.82rem;width:100%;resize:vertical"></textarea></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1.1rem">
+      <div><label style="font-size:.72rem;color:var(--muted2);font-weight:600;display:block;margin-bottom:.2rem">Mecánico</label><select id="ejecMec" style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:.3rem .5rem;color:var(--text);font-size:.82rem;width:100%"></select></div>
+      <div><label style="font-size:.72rem;color:var(--muted2);font-weight:600;display:block;margin-bottom:.2rem">Ayudante Mecánico</label><select id="ejecAyu" style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:.3rem .5rem;color:var(--text);font-size:.82rem;width:100%"></select></div>
+    </div>
+    <div style="display:flex;gap:.5rem;justify-content:flex-end">
+      <button class="btn btn-out btn-sm" onclick="document.getElementById('mEngraseEjec').style.display='none'">Cancelar</button>
+      <button class="btn btn-sm" onclick="gEngraseEjec()" style="background:#10b981;color:#fff;border:none">✔ Guardar Ejecución</button>
     </div>
   </div>
 </div>
@@ -5209,7 +5234,10 @@ function rEngrase(){
     if(cur)proyEl.value=cur;
   }
   const proyFiltro=proyEl?proyEl.value:'';
-  const equiposFilt=proyFiltro?DB.equipos.filter(eq=>eq.proyecto===proyFiltro):DB.equipos;
+  const tipoEl=document.getElementById('engraseTipoFilt');
+  if(tipoEl){const curTipo=tipoEl.value||'Línea Amarilla';const tipos=[...new Set((DB.equipos||[]).map(eq=>eq.tipo).filter(Boolean))].sort();tipoEl.innerHTML='<option value="">— Todos los tipos —</option>'+tipos.map(t=>`<option value="${t}">${t}</option>`).join('');tipoEl.value=curTipo;}
+  const tipoFiltro=tipoEl?tipoEl.value:'Línea Amarilla';
+  const equiposFilt=(proyFiltro?DB.equipos.filter(eq=>eq.proyecto===proyFiltro):DB.equipos).filter(eq=>!tipoFiltro||eq.tipo===tipoFiltro);
   const monthRecs=DB.engrase.filter(r=>r.fecha&&r.fecha.startsWith(monthStr));
   const uniqueEqs=[...new Set(monthRecs.map(r=>r.eqId))].length;
   document.getElementById('engraseKpis').innerHTML=[
@@ -5225,18 +5253,23 @@ function rEngrase(){
   const rows=equiposFilt.map((eq,idx)=>{
     const cells=Array.from({length:days},(_,i)=>{
       const d=i+1,fecha=`${y}-${pad(m)}-${pad(d)}`;
-      const active=DB.engrase.some(r=>r.eqId===eq.id&&r.fecha===fecha);
+      const erec=DB.engrase.find(r=>r.eqId===eq.id&&r.fecha===fecha);
+      const estado=erec?(erec.tipo||'P'):'';
       const dow=new Date(fecha+'T12:00:00').getDay(),isSun=dow===0;
-      return`<td id="eng-${eq.id}-${fecha}" onclick="toggleEngrase(${eq.id},'${fecha}')" style="text-align:center;cursor:pointer;height:26px;padding:0;border:1px solid var(--border);${active?'background:var(--mec);color:#fff;':''}${isSun&&!active?'background:rgba(245,158,11,.06);':''}" title="${fecha}">${active?'<span style="font-size:.75rem;font-weight:700">×</span>':''}</td>`;
+      const cbg=estado==='E'?'#10b981':estado==='P'?'#3b82f6':isSun?'rgba(245,158,11,.06)':'';
+      const ccol=(estado==='E'||estado==='P')?'#fff':'';
+      const cfn=estado==='E'?`showEngraseDetail(${eq.id},'${fecha}')`:`openEngrasePicker(${eq.id},'${fecha}',event)`;
+      return`<td id="eng-${eq.id}-${fecha}" onclick="${cfn}" style="text-align:center;cursor:pointer;height:26px;padding:0;border:1px solid var(--border);background:${cbg};color:${ccol};" title="${fecha}">${estado?`<span style="font-size:.7rem;font-weight:700">${estado}</span>`:''}</td>`;
     }).join('');
-    const tot=DB.engrase.filter(r=>r.eqId===eq.id&&r.fecha.startsWith(monthStr)).length;
+    const pCnt=DB.engrase.filter(r=>r.eqId===eq.id&&r.fecha.startsWith(monthStr)&&(r.tipo||'P')==='P').length;
+    const eCnt=DB.engrase.filter(r=>r.eqId===eq.id&&r.fecha.startsWith(monthStr)&&r.tipo==='E').length;
     return`<tr style="border-bottom:1px solid var(--border)">
       <td style="text-align:center;font-size:.7rem;color:var(--muted2);padding:3px 5px;white-space:nowrap">${idx+1}</td>
       <td style="padding:3px 5px;white-space:nowrap"><span class="badge b-purple" style="font-size:.58rem">${eq.tipo||'—'}</span></td>
       <td style="padding:3px 8px;white-space:nowrap;font-size:.78rem"><strong>${eq.nombre}</strong></td>
       <td class="mono" style="padding:3px 5px;font-size:.7rem;white-space:nowrap">${eq.placa||'—'}</td>
       ${cells}
-      <td id="eng-tot-${eq.id}" style="text-align:center;font-weight:700;font-size:.85rem;color:var(--mec);padding:3px 6px;white-space:nowrap;background:rgba(4,78,100,.08)">${tot||''}</td>
+      <td id="eng-tot-${eq.id}" style="text-align:center;font-size:.78rem;padding:3px 4px;white-space:nowrap;background:rgba(4,78,100,.08)">${(pCnt||eCnt)?`<span style="color:#3b82f6;font-weight:700">${pCnt}P</span> <span style="color:#10b981;font-weight:700">${eCnt}E</span>`:''}</td>
     </tr>`;
   }).join('');
   const mesNombre=new Date(y,m-1,1).toLocaleString('es-PE',{month:'long'}).toUpperCase();
@@ -5254,26 +5287,94 @@ function rEngrase(){
     </thead>
     <tbody>${rows}</tbody>`;
 }
-function toggleEngrase(eqId,fecha){
-  const existing=DB.engrase.find(r=>r.eqId===eqId&&r.fecha===fecha);
-  if(existing){
-    DB.engrase=DB.engrase.filter(r=>r.id!==existing.id);
-    supaDelete('engrase',existing.id);
-  }else{
-    const rec={id:nid('eng'),eqId,fecha};
-    DB.engrase.push(rec);
-    syncSheet('saveEngrase',rec);
+let _engPickEqId=null,_engPickFecha=null;
+function openEngrasePicker(eqId,fecha,evt){
+  if(evt)evt.stopPropagation();
+  _engPickEqId=eqId;_engPickFecha=fecha;
+  const rec=DB.engrase.find(r=>r.eqId===eqId&&r.fecha===fecha);
+  const estado=rec?(rec.tipo||'P'):'';
+  const pk=document.getElementById('engrasePicker');if(!pk)return;
+  let btns='';
+  if(!estado){
+    btns=`<button class="btn btn-sm" onclick="setEngraseP(${eqId},'${fecha}')" style="background:#3b82f6;color:#fff;border:none;width:100%;justify-content:center;padding:.35rem .6rem">📋 Programar (P)</button>`;
+  }else if(estado==='P'){
+    btns=`<button class="btn btn-sm" onclick="openEngraseEjecForm(${eqId},'${fecha}')" style="background:#10b981;color:#fff;border:none;width:100%;justify-content:center;padding:.35rem .6rem;margin-bottom:.25rem">✔ Ejecutado (E)</button><button class="btn btn-sm btn-del" onclick="delEngrase(${eqId},'${fecha}')" style="width:100%;justify-content:center;padding:.35rem .6rem">↩ Reprogramar / Borrar</button>`;
   }
-  const active=!existing;
+  pk.innerHTML=btns;
   const cell=document.getElementById(`eng-${eqId}-${fecha}`);
-  if(cell){cell.style.background=active?'var(--mec)':'';cell.style.color=active?'#fff':'';cell.innerHTML=active?'<span style="font-size:.75rem;font-weight:700">×</span>':'';}
-  const mv=document.getElementById('engraseMes')?.value||fecha.slice(0,7);
-  const monthStr=mv.slice(0,7);
-  const tot=DB.engrase.filter(r=>r.eqId===eqId&&r.fecha.startsWith(monthStr)).length;
-  const totCell=document.getElementById('eng-tot-'+eqId);
-  if(totCell)totCell.textContent=tot||'';
-  // Update KPIs
-  const monthRecs=DB.engrase.filter(r=>r.fecha&&r.fecha.startsWith(monthStr));
+  const r=cell?cell.getBoundingClientRect():{bottom:100,left:100};
+  const left=Math.max(4,Math.min(r.left,window.innerWidth-200));
+  pk.style.cssText=`display:flex;flex-direction:column;gap:.25rem;position:fixed;z-index:9999;background:var(--panel);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.28);padding:.5rem;min-width:190px;top:${r.bottom+4}px;left:${left}px`;
+  setTimeout(()=>document.addEventListener('click',_closeEngrasePicker,{once:true}),20);
+}
+function _closeEngrasePicker(){
+  const pk=document.getElementById('engrasePicker');if(pk)pk.style.display='none';
+}
+function setEngraseP(eqId,fecha){
+  _closeEngrasePicker();
+  if(DB.engrase.find(r=>r.eqId===eqId&&r.fecha===fecha))return;
+  const rec={id:nid('eng'),eqId,fecha,tipo:'P'};
+  DB.engrase.push(rec);syncSheet('saveEngrase',rec);
+  _refreshEngraseCell(eqId,fecha);
+  _updateEngraseTotals(fecha.slice(0,7));
+}
+function delEngrase(eqId,fecha){
+  _closeEngrasePicker();
+  const ex=DB.engrase.find(r=>r.eqId===eqId&&r.fecha===fecha);if(!ex)return;
+  DB.engrase=DB.engrase.filter(r=>r.id!==ex.id);supaDelete('engrase',ex.id);
+  _refreshEngraseCell(eqId,fecha);
+  _updateEngraseTotals(fecha.slice(0,7));
+}
+function openEngraseEjecForm(eqId,fecha){
+  _closeEngrasePicker();
+  _engPickEqId=eqId;_engPickFecha=fecha;
+  const personal=DB.personal||[];
+  const opts='<option value="">— Seleccionar —</option>'+personal.map(p=>`<option value="${p.ape}, ${p.nom}">${p.ape}, ${p.nom}</option>`).join('');
+  document.getElementById('ejecMec').innerHTML=opts;
+  document.getElementById('ejecAyu').innerHTML=opts;
+  document.getElementById('ejecCant').value='';
+  document.getElementById('ejecHH').value='';
+  document.getElementById('ejecObs').value='';
+  document.getElementById('mEngraseEjec').style.display='flex';
+}
+function gEngraseEjec(){
+  const eqId=_engPickEqId,fecha=_engPickFecha;
+  const ex=DB.engrase.find(r=>r.eqId===eqId&&r.fecha===fecha);if(!ex)return;
+  ex.tipo='E';
+  ex.cantEngrase=+document.getElementById('ejecCant').value||0;
+  ex.tiempoHH=+document.getElementById('ejecHH').value||0;
+  ex.obs=document.getElementById('ejecObs').value.trim();
+  ex.mecanico=document.getElementById('ejecMec').value;
+  ex.ayudante=document.getElementById('ejecAyu').value;
+  syncSheet('saveEngrase',ex);
+  document.getElementById('mEngraseEjec').style.display='none';
+  _refreshEngraseCell(eqId,fecha);
+  _updateEngraseTotals(fecha.slice(0,7));
+}
+function showEngraseDetail(eqId,fecha){
+  const rec=DB.engrase.find(r=>r.eqId===eqId&&r.fecha===fecha);if(!rec)return;
+  toast(`Ejecutado • Engrase:${rec.cantEngrase||0} • HH:${rec.tiempoHH||0}${rec.obs?' • '+rec.obs:''}${rec.mecanico?' • Mec:'+rec.mecanico:''}`);
+}
+function _refreshEngraseCell(eqId,fecha){
+  const rec=DB.engrase.find(r=>r.eqId===eqId&&r.fecha===fecha);
+  const estado=rec?(rec.tipo||'P'):'';
+  const dow=new Date(fecha+'T12:00:00').getDay(),isSun=dow===0;
+  const cbg=estado==='E'?'#10b981':estado==='P'?'#3b82f6':isSun?'rgba(245,158,11,.06)':'';
+  const ccol=(estado==='E'||estado==='P')?'#fff':'';
+  const cell=document.getElementById(`eng-${eqId}-${fecha}`);if(!cell)return;
+  cell.style.background=cbg;cell.style.color=ccol;
+  cell.innerHTML=estado?`<span style="font-size:.7rem;font-weight:700">${estado}</span>`:'';
+  cell.setAttribute('onclick',estado==='E'?`showEngraseDetail(${eqId},'${fecha}')`:`openEngrasePicker(${eqId},'${fecha}',event)`);
+}
+function _updateEngraseTotals(monthStr){
+  const ms=(document.getElementById('engraseMes')?.value||monthStr).slice(0,7);
+  (DB.equipos||[]).forEach(eq=>{
+    const totCell=document.getElementById('eng-tot-'+eq.id);if(!totCell)return;
+    const recs=DB.engrase.filter(r=>r.eqId===eq.id&&r.fecha.startsWith(ms));
+    const pCnt=recs.filter(r=>(r.tipo||'P')==='P').length,eCnt=recs.filter(r=>r.tipo==='E').length;
+    totCell.innerHTML=(pCnt||eCnt)?`<span style="color:#3b82f6;font-weight:700">${pCnt}P</span> <span style="color:#10b981;font-weight:700">${eCnt}E</span>`:'';
+  });
+  const monthRecs=DB.engrase.filter(r=>r.fecha&&r.fecha.startsWith(ms));
   const uniqueEqs=[...new Set(monthRecs.map(r=>r.eqId))].length;
   const kEl=document.getElementById('engraseKpis');
   if(kEl){const divs=kEl.querySelectorAll('div>div:nth-child(2)');if(divs[0])divs[0].textContent=monthRecs.length;if(divs[1])divs[1].textContent=uniqueEqs;if(divs[2])divs[2].textContent=uniqueEqs?(Math.round(monthRecs.length/uniqueEqs*10)/10):0;}
@@ -5296,16 +5397,21 @@ function printEngrase(){
   const proyFiltro=proyEl?proyEl.value:'';
   const proyNombre=proyFiltro||(proyEl&&proyEl.value===''?'':proyEl?.options[proyEl.selectedIndex]?.text||'');
   const elab=document.getElementById('engraseElab')?.value||'';
-  const equiposFilt=proyFiltro?DB.equipos.filter(eq=>eq.proyecto===proyFiltro):DB.equipos;
+  const tipoElP=document.getElementById('engraseTipoFilt');
+  const tipoFiltroP=tipoElP?tipoElP.value:'Línea Amarilla';
+  const equiposFilt=(proyFiltro?DB.equipos.filter(eq=>eq.proyecto===proyFiltro):DB.equipos).filter(eq=>!tipoFiltroP||eq.tipo===tipoFiltroP);
   const rows=equiposFilt.map((eq,idx)=>{
     const cells=Array.from({length:days},(_,i)=>{
       const d=i+1,fecha=`${y}-${pad(m)}-${pad(d)}`;
-      const active=DB.engrase.some(r=>r.eqId===eq.id&&r.fecha===fecha);
+      const prec=DB.engrase.find(r=>r.eqId===eq.id&&r.fecha===fecha);
+      const estado=prec?(prec.tipo||'P'):'';
       const dow=new Date(fecha+'T12:00:00').getDay(),isSun=dow===0;
-      return`<td style="text-align:center;padding:0;border:1px solid #e2e8f0;height:20px;${active?'background:#044e64;color:#fff;font-weight:700;font-size:9px':''}${isSun&&!active?'background:#fffbeb;':''}">${active?'X':''}</td>`;
+      const pbg=estado==='E'?'#10b981':estado==='P'?'#3b82f6':isSun?'#fffbeb':'';
+      return`<td style="text-align:center;padding:0;border:1px solid #e2e8f0;height:20px;background:${pbg};${estado?'color:#fff;font-weight:700;font-size:9px':''}">${estado}</td>`;
     }).join('');
-    const tot=DB.engrase.filter(r=>r.eqId===eq.id&&r.fecha.startsWith(monthStr)).length;
-    return`<tr><td style="text-align:center;font-size:8px;padding:2px 3px;border:1px solid #e2e8f0">${idx+1}</td><td style="font-size:7.5px;padding:2px 3px;border:1px solid #e2e8f0;white-space:nowrap">${eq.tipo||'—'}</td><td style="font-size:8px;font-weight:700;padding:2px 5px;border:1px solid #e2e8f0;white-space:nowrap">${eq.nombre}</td><td style="font-size:7.5px;padding:2px 3px;border:1px solid #e2e8f0;font-family:monospace">${eq.placa||'—'}</td>${cells}<td style="text-align:center;font-weight:700;font-size:9px;color:#044e64;padding:2px 4px;border:1px solid #e2e8f0;background:#e0f2fe">${tot||''}</td></tr>`;
+    const pCntP=DB.engrase.filter(r=>r.eqId===eq.id&&r.fecha.startsWith(monthStr)&&(r.tipo||'P')==='P').length;
+    const eCntP=DB.engrase.filter(r=>r.eqId===eq.id&&r.fecha.startsWith(monthStr)&&r.tipo==='E').length;
+    return`<tr><td style="text-align:center;font-size:8px;padding:2px 3px;border:1px solid #e2e8f0">${idx+1}</td><td style="font-size:7.5px;padding:2px 3px;border:1px solid #e2e8f0;white-space:nowrap">${eq.tipo||'—'}</td><td style="font-size:8px;font-weight:700;padding:2px 5px;border:1px solid #e2e8f0;white-space:nowrap">${eq.nombre}</td><td style="font-size:7.5px;padding:2px 3px;border:1px solid #e2e8f0;font-family:monospace">${eq.placa||'—'}</td>${cells}<td style="text-align:center;font-size:8px;padding:2px 4px;border:1px solid #e2e8f0;background:#e0f2fe;white-space:nowrap">${(pCntP||eCntP)?`<span style="color:#3b82f6;font-weight:700">${pCntP}P</span> <span style="color:#10b981;font-weight:700">${eCntP}E</span>`:''}</td></tr>`;
   }).join('');
   const elaborador=elab;
   const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Engrase ${mesNombre} ${y}</title>
