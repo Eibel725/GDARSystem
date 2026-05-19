@@ -33,7 +33,7 @@ const USERS=[
   {codigo:'EIBEL25',dni:'46108109',nombre:'Abel Rodriguez A.',cargo:'PCO',areas:Object.keys(AREAS)},
   {codigo:'ECOADM',dni:'11111111',nombre:'Usuario General',cargo:'General',areas:Object.keys(AREAS)},
   {codigo:'ECOADM',dni:'87654321',nombre:'Omar Silva Santa Cruz',cargo:'Administrador',areas:['administracion']},
-  {codigo:'ADNOEPAL',dni:'73890744',nombre:'Noelia Palomino',cargo:'Asist. Administración',areas:['administracion']},
+  {codigo:'NOEPAL',dni:'73890744',nombre:'Noelia Palomino',cargo:'Asist. Administración',areas:['administracion']},
   {codigo:'ECOBSW',dni:'11112222',nombre:'María Torres Díaz',cargo:'Asistenta Social',areas:['bienestarSocial']},
   {codigo:'FLOBEN',dni:'10199407',nombre:'Flor Benites',cargo:'Jefe de Seguridad',areas:['almacenLogistica','seguridad']},
   {codigo:'ECOALM',dni:'11112222',nombre:'Logistica Central',cargo:'Ecosermo',areas:['almacenLogistica'],modules:['requerimientos','facturasPago']},
