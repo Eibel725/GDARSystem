@@ -9,6 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <style>
 :root{
   --bg:#0a1330;--panel:#131623;--panel2:#171d2e;--border:#1e2740;
@@ -506,6 +507,7 @@ select option{background:var(--panel2);}
         <button class="btn btn-green" style="font-size:.77rem;padding:.35rem .85rem" onclick="openAlmEM()">⬆ Entrada Múltiple</button>
         <button class="btn btn-del btn-sm" style="padding:.35rem .85rem;font-size:.77rem;background:rgba(239,68,68,.18);border-color:#ef4444" onclick="openAlmSM()">⬇ Salida Múltiple</button>
         <button class="btn btn-out btn-sm" style="padding:.35rem .85rem;font-size:.77rem;border-color:#3b82f6;color:#3b82f6" onclick="openPrintVale()">🖨 Imprimir Vale</button>
+        <button class="btn btn-out btn-sm" style="padding:.35rem .85rem;font-size:.77rem;border-color:#16a34a;color:#16a34a" onclick="exportKardexXLS()">📊 Excel</button>
       </div>
       <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:nowrap;overflow-x:auto">
         <select id="almFiltTipo" class="sel" style="flex:0 0 auto;width:110px;font-size:.75rem" onchange="_almChangeFilt()">
@@ -594,6 +596,7 @@ select option{background:var(--panel2);}
       <div class="card-head-right">
         <div class="search-wrap"><span>🔍</span><input class="search-input" placeholder="Buscar..." oninput="flt(this,'tbReq')"></div>
         <button class="btn btn-out" style="border-color:#10b981;color:#10b981;font-size:.78rem" onclick="recalcularEstadosRQ().then(()=>toast('✓ Estados recalculados'))">⟳ Recalcular estados</button>
+        <button class="btn btn-out" style="border-color:#16a34a;color:#16a34a;font-size:.78rem" onclick="exportReqXLS()">📊 Excel</button>
         <button class="btn btn-a" style="--ba:var(--alm)" onclick="openMReq()">＋ Nuevo Requerimiento</button>
       </div>
     </div>
@@ -4219,6 +4222,67 @@ function _rReqToggleSort(){
   if(ic)ic.textContent=_rReqSortAsc?'▲':'▼';
   rReq();
 }
+function exportReqXLS(){
+  if(!window.XLSX){toast('Librería Excel no cargada aún, intenta en unos segundos',true);return;}
+  const pfEl=document.getElementById('rqProyFilter');
+  const filtProy=pfEl?pfEl.value:'';
+  let lista=DB.requerimientos;
+  if(filtProy)lista=lista.filter(r=>(r.proyecto||'')===filtProy);
+  const wb=XLSX.utils.book_new();
+  // Hoja 1: Resumen
+  const h1=['Cód. Proyecto','N° RQ','Fecha','Proyecto','Solicitante','Área','Prioridad','Estado','N° Ítems','Comprobantes'];
+  const d1=lista.map(r=>[
+    r.codProy||'',r.num||'',r.fecha||'',r.proyecto||'',
+    r.solicitante||'',r.area||'',r.prioridad||'',r.est||'',
+    (r.items||[]).length,
+    DB.facturasPago.filter(f=>f.reqId===r.id).map(f=>f.num).join(', ')
+  ]);
+  const ws1=XLSX.utils.aoa_to_sheet([h1,...d1]);
+  ws1['!cols']=[{wch:12},{wch:10},{wch:12},{wch:28},{wch:22},{wch:18},{wch:12},{wch:16},{wch:8},{wch:22}];
+  XLSX.utils.book_append_sheet(wb,ws1,'Requerimientos');
+  // Hoja 2: Detalle ítems
+  const h2=['Cód. Proyecto','N° RQ','Fecha','Estado','Cód. Ítem','Descripción','Unidad','Cantidad','Observación','Tipo Costo'];
+  const d2=[];
+  lista.forEach(r=>(r.items||[]).forEach(it=>d2.push([
+    r.codProy||'',r.num||'',r.fecha||'',r.est||'',
+    it.cod||'',it.desc||'',it.und||'',it.cant||0,it.obs||'',it.tcosto||''
+  ])));
+  const ws2=XLSX.utils.aoa_to_sheet([h2,...d2]);
+  ws2['!cols']=[{wch:12},{wch:10},{wch:12},{wch:16},{wch:14},{wch:35},{wch:8},{wch:9},{wch:25},{wch:16}];
+  XLSX.utils.book_append_sheet(wb,ws2,'Detalle Ítems');
+  XLSX.writeFile(wb,`Requerimientos_${new Date().toISOString().slice(0,10)}.xlsx`);
+  toast('✓ Excel descargado');
+}
+
+function exportKardexXLS(){
+  if(!window.XLSX){toast('Librería Excel no cargada aún, intenta en unos segundos',true);return;}
+  // Mismo orden y filtros que rAlm()
+  const filas=[...DB.almacen].sort((a,b)=>a.fecha<b.fecha?-1:a.fecha>b.fecha?1:a.id-b.id);
+  const saldos={},saldoMap={};
+  filas.forEach(r=>{if(saldos[r.codigo]===undefined)saldos[r.codigo]=0;saldos[r.codigo]+=(r.tipo==='E'?1:-1)*r.cant;saldoMap[r.id]=saldos[r.codigo];});
+  let fm=_almFiltTipo?filas.filter(r=>r.tipo===_almFiltTipo):filas;
+  if(_almFiltProy)fm=fm.filter(r=>(r.codProy||'').trim()===_almFiltProy);
+  if(_almFiltMat)fm=fm.filter(r=>r.codigo&&r.codigo.toUpperCase().startsWith(_almFiltMat.toUpperCase()+'-'));
+  if(_almFiltFecha)fm=fm.filter(r=>r.fecha===_almFiltFecha);
+  if(_almFiltText)fm=fm.filter(r=>[r.codigo,r.nombre,r.proyecto,r.rqRef,r.numVale,r.para,r.tipoCosto,r.proveedor].some(v=>String(v||'').toLowerCase().includes(_almFiltText)));
+  const wb=XLSX.utils.book_new();
+  const hdr=['Fecha','Proyecto','Cód. Proyecto','RQ / VAL','Código','Descripción','Unidad','Movimiento','Cantidad','Saldo','Tipo Costo','Para Persona/Equipo','Proveedor'];
+  const rows=fm.map(r=>[
+    r.fecha||'',r.proyecto||'',r.codProy||'',
+    r.tipo==='S'?(r.numVale||''):(r.rqRef||''),
+    r.codigo||'',r.nombre||'',r.unidad||'',
+    r.tipo==='E'?'Entrada':'Salida',
+    r.tipo==='E'?+r.cant:-r.cant,
+    saldoMap[r.id]||0,
+    r.tipoCosto||'',r.para||'',r.proveedor||''
+  ]);
+  const ws=XLSX.utils.aoa_to_sheet([hdr,...rows]);
+  ws['!cols']=[{wch:12},{wch:28},{wch:12},{wch:12},{wch:14},{wch:32},{wch:8},{wch:9},{wch:9},{wch:9},{wch:15},{wch:28},{wch:22}];
+  XLSX.utils.book_append_sheet(wb,ws,'Kardex');
+  XLSX.writeFile(wb,`Kardex_${new Date().toISOString().slice(0,10)}.xlsx`);
+  toast('✓ Excel descargado');
+}
+
 function rReq(){
   // Actualizar opciones del filtro de proyecto preservando selección
   const pfEl=document.getElementById('rqProyFilter');
