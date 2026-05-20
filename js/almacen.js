@@ -305,8 +305,10 @@ function renderSMItems(){
   const smCodProy=smProy?smProy.codigo:'';
   const valeEl=document.getElementById('smVale');
   if(valeEl)valeEl.value=_nextValeNum(smCodProy);
-  const st=smProyNom?_getStockProy(smCodProy,smProyNom):getStock();
-  const allStock=Object.entries(st).filter(([,v])=>v.stock>0);
+  const todoAlmacen=document.getElementById('smTodoAlmacen')?.checked;
+  const st=todoAlmacen?getStock():(smProyNom?_getStockProy(smCodProy,smProyNom):getStock());
+  const allStock=Object.entries(st).filter(([,v])=>v.stock>0)
+    .sort((a,b)=>todoAlmacen?(a[1].nombre||'').localeCompare(b[1].nombre||''):0);
   const b=document.getElementById('smItemsBody');if(!b)return;
   b.innerHTML=smItemsArr.map((it,i)=>{
     const sv=st[it.cod];
